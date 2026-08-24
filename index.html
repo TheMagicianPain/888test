@@ -164,6 +164,10 @@ function GlitterLayer({ count = 35 }) {
   );
 }
 
+function isInstagramBrowser() {
+  return /Instagram/i.test(navigator.userAgent);
+}
+
 function buildMeditation(visualization) {
   const inductionPre = `Before we begin — make sure you are not operating any machinery, and that you are seated safely in a quiet space.
 
@@ -198,7 +202,7 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
 
   const closingPost = `Open your eyes. Take a deep breath.`;
 
-  const reminder = `Repeat this practice daily, for the next eight days. Make sure to save this page's link, so you can return to it — and to this exact meditation — every day.`;
+  const reminder = `Repeat this practice daily, for the next eight days. Add this to your home screen now, so you can return to it — and to this exact meditation — every day.`;
 
   const reciprocity = `This was given to you freely. And whenever you need clarity — on a decision, a person, a specific moment — you can return for an instant read, tied directly to who you're becoming, any time you want one.`;
 
@@ -225,6 +229,7 @@ function TarotDraw() {
   const [emailInput, setEmailInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [oathChecked, setOathChecked] = useState(false);
+  const [browserCheckAcknowledged, setBrowserCheckAcknowledged] = useState(false);
   const [savedCode, setSavedCode] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [tonePlaying, setTonePlaying] = useState(false);
@@ -270,6 +275,15 @@ function TarotDraw() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    // Opened from the installed home-screen icon (manifest's start_url
+    // carries this marker) — show the hub, don't auto-jump into meditation
+    // even if there's a saved reading sitting in localStorage.
+    if (params.get("home") === "true") {
+      setStage("hub");
+      return;
+    }
+
     let d = params.get("d");
 
     // No 'd' in the URL — most likely because we just returned from a
@@ -854,6 +868,43 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
+  function goToMeditationFromHub(scrollToInstantReads) {
+    let d = null;
+    try {
+      d = localStorage.getItem("magi_saved_reading");
+    } catch (e) {
+      d = null;
+    }
+    if (!d) {
+      // Nothing saved on this device yet — send them into the normal
+      // first-time flow instead of a blank meditation screen.
+      setStage("intro");
+      return;
+    }
+    try {
+      const saved = decodeFromParam(d);
+      const built = buildMeditation(saved.visualization);
+      setGoal(saved.goal);
+      setReading(saved.reading);
+      setMeditation(built.fullMeditation);
+      setMeditationParts(built.parts);
+      setUnlocked(true);
+      setStage("meditation");
+      startTone();
+      if (scrollToInstantReads) {
+        setTimeout(() => {
+          if (instantReadsRef.current) {
+            instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 300);
+      }
+    } catch (e) {
+      console.error("Failed to restore saved meditation from hub:", e);
+      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
+      setStage("intro");
+    }
+  }
+
   function confirmOathAndSave() {
     setUnlocked(true);
     setStage("meditation");
@@ -955,6 +1006,28 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         <div className="cinzel" style={{ fontSize: "0.78rem", letterSpacing: "0.28em", color: "#0D9488", textTransform: "uppercase", marginBottom: "1.2rem" }}>
           888
         </div>
+
+        {stage === "hub" && (
+          <>
+            <h1 className="cinzel" style={{ fontSize: "1.7rem", marginBottom: "2rem" }}>
+              Welcome back.
+            </h1>
+            <button
+              className="glow-btn"
+              onClick={() => goToMeditationFromHub(false)}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            >
+              Continue My Meditation
+            </button>
+            <button
+              className="ghost-btn"
+              onClick={() => goToMeditationFromHub(true)}
+              style={{ width: "100%" }}
+            >
+              ✨ Instant Reads
+            </button>
+          </>
+        )}
 
         {stage === "intro" && (
           <>
@@ -1150,11 +1223,49 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[3].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[3].label}</div>
                   <p style={{ color: "#1C1C1E", lineHeight: 1.75 }}>{reading.whoYouBecome}</p>
                 </div>
-                <button className="glow-btn" onClick={() => setStage("oath")}>
+                <button
+                  className="glow-btn"
+                  onClick={() => setStage(isInstagramBrowser() ? "browser-check" : "oath")}
+                >
                   Receive Your Meditation
                 </button>
               </>
             )}
+          </>
+        )}
+
+        {stage === "browser-check" && (
+          <>
+            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>
+              One Quick Thing
+            </h2>
+            <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.3)", borderRadius: 14, padding: "1.6rem", marginBottom: "1.6rem", textAlign: "left" }}>
+              <p style={{ color: "#1C1C1E", lineHeight: 1.7, marginBottom: "1rem" }}>
+                You're viewing this inside Instagram right now — which means you won't be able to save your meditation or turn on reminders.
+              </p>
+              <p style={{ color: "#1C1C1E", lineHeight: 1.7, marginBottom: "1rem", fontWeight: 700 }}>
+                Tap the ••• (or ⋮) menu at the top right of this screen, then choose "Open in Browser" (or "Open in Safari").
+              </p>
+              <p style={{ color: "#6E6E73", lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
+                Takes 5 seconds, and it's the only way to keep coming back to your practice.
+              </p>
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", justifyContent: "center", marginBottom: "1.6rem", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={browserCheckAcknowledged}
+                onChange={(e) => setBrowserCheckAcknowledged(e.target.checked)}
+                style={{ width: 20, height: 20 }}
+              />
+              <span style={{ color: "#6E6E73" }}>I've opened this in my browser, not Instagram</span>
+            </label>
+            <button
+              className="glow-btn"
+              disabled={!browserCheckAcknowledged}
+              onClick={() => setStage("oath")}
+            >
+              Continue
+            </button>
           </>
         )}
 
@@ -1190,12 +1301,18 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               you are not operating any machinery.
             </p>
             {savedCode && (
-              <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.2rem" }}>
-                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.7rem" }}>
-                  Save this link now — it's your way back, every day, for the next eight days.
+              <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
+                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.5rem" }}>
+                  Add this to your Home Screen
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.92rem", margin: "0 0 0.9rem", lineHeight: 1.5 }}>
+                  Tap the Share icon, then "Add to Home Screen." That's your way back every day — this exact reading, right where you left it, plus reminders.
+                </p>
+                <p style={{ color: "#6E6E73", fontSize: "0.82rem", margin: "0 0 0.5rem" }}>
+                  On a different device, or just prefer a link?
                 </p>
                 <button className="audio-btn" onClick={copyLink} style={{ width: "100%", justifyContent: "center" }}>
-                  {linkCopied ? "✓ Copied!" : "📋 Copy My Link"}
+                  {linkCopied ? "✓ Copied!" : "📋 Copy My Link Instead"}
                 </button>
               </div>
             )}
@@ -1360,1381 +1477,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </div>
 
             <p style={{ color: "#0D9488", fontWeight: 700 }}>
-              One last reminder — save this page's link now, so you can return to
-              your meditation every day, for the next eight days.
-            </p>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-const container = document.getElementById("root");
-const root = ReactDOM.createRoot(container);
-root.render(<TarotDraw />);
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Draw — The Magician's Path</title>
-
-<!-- PWA: home screen install -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0D9488">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="The Draw">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body { margin: 0; }
-</style>
-</head>
-<body>
-<div id="root"></div>
-
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<script type="text/babel">
-const { useState, useRef, useEffect } = React;
-
-const WORKER_URL = "https://tarot-relay.naturopathpain.workers.dev";
-
-function Icon({ children, size = 16, style, ...rest }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", ...style }} {...rest}>
-      {children}
-    </svg>
-  );
-}
-const ArrowRight = (props) => <Icon {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Icon>;
-const Sparkles = (props) => <Icon {...props}><path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z"/></Icon>;
-const Loader2 = (props) => <Icon {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Icon>;
-const Play = (props) => <Icon {...props}><polygon points="5 3 19 12 5 21 5 3"/></Icon>;
-const Square = (props) => <Icon {...props}><rect x="4" y="4" width="16" height="16" rx="2"/></Icon>;
-const Volume2 = (props) => <Icon {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></Icon>;
-const Download = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
-
-
-const MAJOR = [
-  { n: "The Fool", k: "The blank slate — no fixed identity, free to become anything." },
-  { n: "The Magician", k: "Alpha and Omega — mastering reality by mastering the inner state." },
-  { n: "The High Priestess", k: "Intuition made real — the gate between the hidden and the seen." },
-  { n: "The Empress", k: "Abundance embodied — creation flowing without scarcity." },
-  { n: "The Emperor", k: "Natural leadership — discipline and command over the self." },
-  { n: "The Hierophant", k: "The teacher — leading by example, speaking your truth loudly." },
-  { n: "The Lovers", k: "Love as the primary tool — masculine and feminine in balance." },
-  { n: "The Chariot", k: "Unrelenting faith — persistence that makes anything possible." },
-  { n: "Strength", k: "Raw power, tamed — the primal force directed with love." },
-  { n: "The Hermit", k: "The turning point — solitude that integrates everything learned." },
-  { n: "Wheel of Fortune", k: "The breakthrough — control found by releasing the need for it." },
-  { n: "Justice", k: "Cause and effect — the balancing force, aligned with what's right." },
-  { n: "The Hanged Man", k: "Surrender — releasing control to something higher." },
-  { n: "Death", k: "Evolution — letting the old identity die so a new one can live." },
-  { n: "Temperance", k: "Moderation — the steady hand that masters the material world." },
-  { n: "The Devil", k: "Slavery to the material — spirit placed beneath what can be seen." },
-  { n: "The Tower", k: "Collapse of a false foundation — the call to rebuild on truth." },
-  { n: "The Star", k: "Shameless hope — your light raising others as it rises." },
-  { n: "The Moon", k: "Creativity and emotion — the feminine, where spirit begins." },
-  { n: "The Sun", k: "Pure action — the masculine force that brings vision into form." },
-  { n: "Judgement", k: "The higher calling — rebirth into who you're meant to be." },
-  { n: "The World", k: "Completion — in the world, but no longer bound by it." },
-];
-
-const SUITS = ["Wands", "Cups", "Swords", "Pentacles"];
-const RANKS = [
-  { r: "Ace", k: "a pure, unclaimed spark of new potential" },
-  { r: "Two", k: "a choice or balance point being weighed" },
-  { r: "Three", k: "early growth — the first real progress" },
-  { r: "Four", k: "a pause to consolidate what's been built" },
-  { r: "Five", k: "friction — conflict that's actually clarifying" },
-  { r: "Six", k: "a turning point toward harmony" },
-  { r: "Seven", k: "a test of patience and quiet resolve" },
-  { r: "Eight", k: "movement — real momentum picking up speed" },
-  { r: "Nine", k: "nearing completion, close to the edge of it" },
-  { r: "Ten", k: "full completion — the cycle closing" },
-  { r: "Page", k: "a student's curiosity — new information arriving" },
-  { r: "Knight", k: "bold, single-minded pursuit of one goal" },
-  { r: "Queen", k: "mastery held inwardly, felt more than performed" },
-  { r: "King", k: "mastery expressed outwardly, in full command" },
-];
-const SUIT_DOMAIN = {
-  Wands: "creative drive and will",
-  Cups: "emotion and connection",
-  Swords: "thought and truth",
-  Pentacles: "material reality and resources",
-};
-const MINOR = SUITS.flatMap((s) =>
-  RANKS.map((r) => ({
-    n: `${r.r} of ${s}`,
-    k: `${r.k}, in the domain of ${SUIT_DOMAIN[s]}`,
-  }))
-);
-
-function drawFrom(deck, count) {
-  const pool = [...deck];
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor(Math.random() * pool.length);
-    out.push(pool.splice(idx, 1)[0]);
-  }
-  return out;
-}
-
-const STEPS = [
-  { label: "Your Archetype", color: "#0D9488" },
-  { label: "What's Blocking You", color: "#DC2645" },
-  { label: "The Path Forward", color: "#14B8A6" },
-  { label: "Who You Become", color: "#7A2138" },
-];
-
-const OATH = `I am ready to ascend. I release my old, lesser identity. I am ready to heal whatever curse still binds my spirit and my name.`;
-
-const CUSTOM_TONE_URL = "https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3";
-const ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/28412006/46h2c0y/";
-const ELEVENLABS_VOICE_ID = "jxJbAWE9XnDZWevjkL10";
-// Safe to expose client-side. The matching private key must live only in the Worker/backend, never here.
-const VAPID_PUBLIC_KEY = "BN5ctHYADY2nn2EIXOgZvklszZfqivlckYGxvLgJ6RCbkYMPWuSciJqOD30Gz3eSqYSW3RqadQKA060tbsRcL9Q";
-
-function GlitterLayer({ count = 35 }) {
-  const [dots] = useState(() =>
-    Array.from({ length: count }, () => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: Math.random() * 2.2 + 0.8,
-      delay: Math.random() * 4,
-      duration: Math.random() * 2.5 + 1.5,
-      teal: Math.random() > 0.35,
-    }))
-  );
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
-      {dots.map((d, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            left: `${d.left}%`,
-            top: `${d.top}%`,
-            width: d.size,
-            height: d.size,
-            borderRadius: "50%",
-            background: d.teal ? "#0D9488" : "#7A2138",
-            boxShadow: `0 0 ${d.size * 2.5}px ${d.teal ? "#0D9488" : "#7A2138"}`,
-            animation: `glimmer ${d.duration}s ease-in-out ${d.delay}s infinite`,
-          }}
-        />
-      ))}
-      <style>{`@keyframes glimmer { 0%,100% { opacity:0; transform:scale(0.4);} 50% { opacity:1; transform:scale(1.3);} }`}</style>
-    </div>
-  );
-}
-
-function buildMeditation(visualization) {
-  const inductionPre = `Before we begin — make sure you are not operating any machinery, and that you are seated safely in a quiet space.
-
-When you're ready, close your eyes.`;
-
-  const breathCycle = `Take a slow breath in... and let it out.`;
-  const breathCycleSSML = `Take a slow breath in.<break time="3.0s" /> And let it out.`;
-
-  const inductionCountSetup = `Now, count slowly to eight with me. With each number, feel your eyelids grow heavier... heavier... as if they are made of stone.`;
-
-  const inductionCount = `One... two... three... four... five... six... seven... eight.`;
-  const countSSML = `One.<break time="0.8s" /> Two.<break time="0.8s" /> Three.<break time="0.8s" /> Four.<break time="0.8s" /> Five.<break time="0.8s" /> Six.<break time="0.8s" /> Seven.<break time="0.8s" /> Eight.`;
-
-  const inductionPost = `By now, they may feel too heavy to open. Try, gently — and notice just how heavy they've become.`;
-
-  const voidLight = `Imagine yourself inside a black void. But it isn't empty — it's warm. Comforting. Completely safe. You are held here, fully, by love itself.
-
-In the distance, a single point of light appears. Bright white. Slowly, it begins to move toward you.
-
-It grows brighter... and brighter... until it completely surrounds you, consuming you entirely in its light.
-
-Feel its warmth now — not just on your skin, but inside you. Inside every cell of your body. Healing, as it moves through you.
-
-...Silence.`;
-
-  const anchor = `From this moment forward — anytime you say the number eight, eight, eight, or hear it spoken by someone else, this exact feeling becomes immediately available to you again.`;
-
-  const closingPre = `Now, let's count back to eight together. With each number, you'll rise gently back into this moment — still holding everything you just became.`;
-
-  const closingCount = `One... two... three... four... five... six... seven... eight.`;
-  const closingCountSSML = `One.<break time="0.8s" /> Two.<break time="0.8s" /> Three.<break time="0.8s" /> Four.<break time="0.8s" /> Five.<break time="0.8s" /> Six.<break time="0.8s" /> Seven.<break time="0.8s" /> Eight.`;
-
-  const closingPost = `Open your eyes. Take a deep breath.`;
-
-  const reminder = `Repeat this practice daily, for the next eight days. Make sure to save this page's link, so you can return to it — and to this exact meditation — every day.`;
-
-  const reciprocity = `This was given to you freely. And whenever you need clarity — on a decision, a person, a specific moment — you can return for an instant read, tied directly to who you're becoming, any time you want one.`;
-
-  const induction = `${inductionPre}\n\n${breathCycle}\n\n${inductionCountSetup}\n\n${inductionCount}\n\n${inductionPost}`;
-  const closing = `${closingPre}\n\n${closingCount}\n\n${closingPost}`;
-
-  const fullMeditation = [induction, voidLight, visualization, anchor, closing, reminder, reciprocity].join("\n\n");
-  const parts = { inductionPre, breathCycle, breathCycleSSML, inductionCountSetup, inductionCount, countSSML, inductionPost, voidLight, visualization, anchor, closingPre, closingCount, closingCountSSML, closingPost, reminder, reciprocity };
-
-  return { fullMeditation, parts };
-}
-
-function TarotDraw() {
-  const [stage, setStage] = useState("intro");
-  const [goal, setGoal] = useState("");
-  const [hsv, setHsv] = useState({ vision: "" });
-  const [pairs, setPairs] = useState([]);
-  const [reading, setReading] = useState(null);
-  const [meditation, setMeditation] = useState(null);
-  const [meditationParts, setMeditationParts] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [unlocked, setUnlocked] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [nameInput, setNameInput] = useState("");
-  const [oathChecked, setOathChecked] = useState(false);
-  const [savedCode, setSavedCode] = useState(null);
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [tonePlaying, setTonePlaying] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
-  const [voiceLoading, setVoiceLoading] = useState(false);
-  const [voiceError, setVoiceError] = useState(null);
-  const [toneVolume, setToneVolume] = useState(0.36); // 40% lower than the original 0.6 default
-  const [notifStatus, setNotifStatus] = useState("default"); // 'default' | 'granted' | 'denied' | 'unsupported'
-  const [instantReadQuestion, setInstantReadQuestion] = useState("");
-  const [instantReadResponse, setInstantReadResponse] = useState(null);
-  const [instantReadLoading, setInstantReadLoading] = useState(false);
-  const [instantReadError, setInstantReadError] = useState(null);
-  const [freeReadsRemaining, setFreeReadsRemaining] = useState(3);
-  const [readCredits, setReadCredits] = useState(0);
-
-  const audioCtxRef = useRef(null);
-  const oscRef = useRef(null);
-  const gainRef = useRef(null);
-  const audioElRef = useRef(null);
-  const speechAudioRef = useRef(null);
-  const speechUrlRef = useRef(null);
-  const speechTimeoutRef = useRef(null);
-  const stopFlagRef = useRef(false);
-  const firstClipPrefetchRef = useRef(null);
-  const instantReadsRef = useRef(null);
-
-  function encodeToParam(obj) {
-    const json = JSON.stringify(obj);
-    const bytes = new TextEncoder().encode(json);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  }
-
-  function decodeFromParam(param) {
-    const b64 = param.replace(/-/g, "+").replace(/_/g, "/");
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const json = new TextDecoder().decode(bytes);
-    return JSON.parse(json);
-  }
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    let d = params.get("d");
-
-    // No 'd' in the URL — most likely because we just returned from a
-    // redirect-based payment method (Amazon Pay / Klarna / Cash App Pay),
-    // whose return_url intentionally omits it to stay under Stripe's URL
-    // length limit. Fall back to the copy saved in localStorage.
-    if (!d) {
-      try {
-        d = localStorage.getItem("magi_saved_reading");
-      } catch (e) {
-        d = null;
-      }
-    }
-
-    if (d) {
-      try {
-        const saved = decodeFromParam(d);
-        const built = buildMeditation(saved.visualization);
-        setGoal(saved.goal);
-        setReading(saved.reading);
-        setMeditation(built.fullMeditation);
-        setMeditationParts(built.parts);
-        setUnlocked(true);
-        setStage("meditation");
-        startTone();
-      } catch (e) {
-        console.error("Failed to restore saved meditation:", e);
-        setVoiceError("This saved link couldn't be loaded. It may be corrupted or incomplete.");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (oscRef.current) oscRef.current.stop();
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-    };
-  }, []);
-
-  // Register the service worker (installability + push receiving). Doesn't
-  // prompt anything visible — permission is only asked when the user taps
-  // "Enable Notifications" below.
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch((e) => {
-        console.error("Service worker registration failed:", e);
-      });
-    }
-    if (!("Notification" in window) || !("PushManager" in window)) {
-      setNotifStatus("unsupported");
-    } else {
-      setNotifStatus(Notification.permission); // 'default' | 'granted' | 'denied'
-    }
-  }, []);
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = atob(base64);
-    return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
-  }
-
-  async function enableNotifications() {
-    try {
-      const permission = await Notification.requestPermission();
-      setNotifStatus(permission);
-      if (permission !== "granted") return;
-
-      const reg = await navigator.serviceWorker.ready;
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-
-      // Send the subscription + their reading to the Worker — this is what
-      // lets it generate their 8 personalized reminder messages, once, right now.
-      if (WORKER_URL) {
-        fetch(`${WORKER_URL}/save-push-subscription`, {
-          method: "POST",
-          body: JSON.stringify({
-            subscription,
-            email: emailInput || null,
-            name: nameInput || null,
-            goal,
-            reading,
-            visualization: meditationParts ? meditationParts.visualization : null,
-          }),
-        }).catch(() => {
-          // don't block the user's experience if this fails silently
-        });
-      }
-    } catch (e) {
-      console.error("Notification permission/subscription failed:", e);
-      setNotifStatus("denied");
-    }
-  }
-
-  function startDraw(finalIdentity) {
-    setGoal(finalIdentity);
-    const majors = drawFrom(MAJOR, 2);
-    const minors = drawFrom(MINOR, 6);
-    const drawnPairs = [
-      [majors[0], minors[0]],
-      [minors[1], minors[2]],
-      [minors[3], minors[4]],
-      [majors[1], minors[5]],
-    ];
-    setPairs(drawnPairs);
-    setStage("reveal");
-  }
-
-  async function copyLink() {
-    const link = window.location.href;
-    try {
-      await navigator.clipboard.writeText(link);
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 3000);
-    } catch (e) {
-      // Fallback for in-app browsers (e.g. Instagram's webview) that block
-      // the Clipboard API — select the text so the user can copy manually.
-      try {
-        const temp = document.createElement("textarea");
-        temp.value = link;
-        temp.style.position = "fixed";
-        temp.style.opacity = "0";
-        document.body.appendChild(temp);
-        temp.focus();
-        temp.select();
-        document.execCommand("copy");
-        document.body.removeChild(temp);
-        setLinkCopied(true);
-        setTimeout(() => setLinkCopied(false), 3000);
-      } catch (e2) {
-        setVoiceError("Couldn't copy automatically — please copy the link from your browser's address bar.");
-      }
-    }
-  }
-
-  async function submitEmailGate() {
-    if (ZAPIER_WEBHOOK_URL) {
-      try {
-        await fetch(ZAPIER_WEBHOOK_URL, {
-          method: "POST",
-          body: JSON.stringify({ name: nameInput, email: emailInput, identity: goal, source: "tarot-draw" }),
-        });
-      } catch (e) {
-        // don't block the user's experience if this fails silently
-      }
-    }
-    generateReading(goal);
-  }
-
-  async function generateReading(identity) {
-    setLoading(true);
-    setError(null);
-    setStage("reading");
-    const cardList = pairs
-      .map((pair, i) => `${STEPS[i].label}: ${pair.map((c) => `${c.n} (${c.k})`).join(" + ")}`)
-      .join("\n");
-
-    const prompt = `You are writing in the voice of "The Magician's Path" — an esoteric identity-transformation brand built on tarot archetypes, chakra ascension through alchemy, and a framework of "Curses" (specific blocks like Identity Vacuum, Soul Bind, False Beliefs, Energy Leakage) that keep someone from full expression. Voice: direct, warm, confident, spiritually serious but not stiff.
-
-The identity the person wants to become: "${identity}"
-
-Four card pairs were drawn:
-${cardList}
-
-Respond ONLY with a JSON object, no markdown, no preamble:
-{
-  "archetype": "A personalized interpretation of the 'Your Archetype' card pair (${pairs[0].map((c) => c.n).join(" and ")}), addressing the reader as 'you', tied to their stated identity. 45-60 words.",
-  "blocking": "A personalized interpretation of the 'What's Blocking You' card pair (${pairs[1].map((c) => c.n).join(" and ")}). 45-60 words.",
-  "pathForward": "A personalized interpretation of the 'The Path Forward' card pair (${pairs[2].map((c) => c.n).join(" and ")}), tying the solution to healing the inner child and the alchemy of stepping into a higher identity. 45-60 words.",
-  "whoYouBecome": "A personalized interpretation of the 'Who You Become' card pair (${pairs[3].map((c) => c.n).join(" and ")}). 45-60 words.",
-  "visualization": "The centerpiece of a guided visualization, second person, present tense, calm hypnotic pacing with natural pauses written as ellipses. Describe the person vividly embodying the identity '${identity}', informed by the Who You Become card pair (${pairs[3].map((c) => c.n).join(" and ")}). Structure it in this exact order: (1) See this version of themselves clearly, feeling it fully. (2) Take a deep breath and release all need or desire for a specific outcome, feeling that reality settle into their bones. (3) They turn and see a child standing nearby, watching them in awe — they realize it is themselves, no older than eight years old. They walk toward the child, embrace them slowly, and the two merge until they are one single person. (4) From there, they are fully this new identity now, completely embodied. About 200-240 words. Do not include any counting, breathing instructions, eyes-opening language, session-closing language, or any mention of the number 888 — those are all handled separately."
-}`;
-
-    try {
-      const response = await fetch(WORKER_URL || "https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1400,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-      const data = await response.json();
-      const text = data.content.map((b) => b.text || "").join("");
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
-      setReading({
-        archetype: parsed.archetype,
-        blocking: parsed.blocking,
-        pathForward: parsed.pathForward,
-        whoYouBecome: parsed.whoYouBecome,
-      });
-
-      const built = buildMeditation(parsed.visualization);
-      setMeditation(built.fullMeditation);
-      setMeditationParts(built.parts);
-
-      try {
-        const encoded = encodeToParam({ goal, reading: parsed, visualization: parsed.visualization });
-        const url = new URL(window.location.href);
-        url.searchParams.set("d", encoded);
-        window.history.replaceState({}, "", url);
-        setSavedCode("saved");
-        try {
-          localStorage.setItem("magi_saved_reading", encoded);
-        } catch (e) {
-          // localStorage can fail in some private-browsing contexts — not critical, URL param still works
-        }
-
-        if (ZAPIER_WEBHOOK_URL) {
-          fetch(ZAPIER_WEBHOOK_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              name: nameInput,
-              email: emailInput,
-              identity: goal,
-              source: "tarot-draw-reading-ready",
-              saved_link: url.toString(),
-              archetype: parsed.archetype,
-              blocking: parsed.blocking,
-              pathForward: parsed.pathForward,
-              whoYouBecome: parsed.whoYouBecome,
-            }),
-          }).catch(() => {
-            // don't block the user's experience if this fails silently
-          });
-        }
-
-        fetch(`${WORKER_URL}/save-reading`, {
-          method: "POST",
-          body: JSON.stringify({
-            email: emailInput,
-            name: nameInput,
-            goal,
-            reading: parsed,
-            visualization: parsed.visualization,
-          }),
-        }).catch(() => {
-          // don't block the user's experience if this fails silently
-        });
-      } catch (e) {
-        console.error("Failed to encode save link:", e);
-        setSavedCode(null);
-      }
-    } catch (e) {
-      setError("The reading couldn't be generated. Try again in a moment.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function startTone() {
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    const ctx = audioCtxRef.current;
-
-    if (ctx.state === "suspended") {
-      try {
-        await ctx.resume();
-      } catch (e) {
-        // Still locked — browser requires a real tap. We check ctx.state below either way.
-      }
-    }
-
-    // A tone graph may already exist from an earlier blocked attempt (e.g. the
-    // automatic call on page load). Don't create a second one — just reflect
-    // whether it's actually audible now that a real user gesture may have unlocked it.
-    if (oscRef.current) {
-      setTonePlaying(ctx.state === "running");
-      return;
-    }
-
-    if (CUSTOM_TONE_URL) {
-      try {
-        const response = await fetch(CUSTOM_TONE_URL);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.loop = true;
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(toneVolume, ctx.currentTime + 2.5);
-        source.connect(gain);
-        gain.connect(ctx.destination);
-        source.start();
-        oscRef.current = source;
-        gainRef.current = gain;
-        setTonePlaying(ctx.state === "running");
-      } catch (e) {
-        setVoiceError("Healing tone failed to load.");
-      }
-      return;
-    }
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = 432;
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(toneVolume * 0.06, ctx.currentTime + 2.5);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    oscRef.current = osc;
-    gainRef.current = gain;
-    setTonePlaying(ctx.state === "running");
-  }
-
-  function handleVolumeChange(newVal) {
-    setToneVolume(newVal);
-    if (gainRef.current && audioCtxRef.current) {
-      const targetVal = CUSTOM_TONE_URL ? newVal : newVal * 0.06;
-      gainRef.current.gain.setValueAtTime(targetVal, audioCtxRef.current.currentTime);
-    }
-  }
-
-  function stopTone() {
-    if (oscRef.current) {
-      const ctx = audioCtxRef.current;
-      const gain = gainRef.current;
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
-      const src = oscRef.current;
-      setTimeout(() => {
-        src.stop();
-        src.disconnect();
-      }, 650);
-      oscRef.current = null;
-    }
-    setTonePlaying(false);
-  }
-
-  function wait(ms) {
-    return new Promise((resolve) => {
-      speechTimeoutRef.current = setTimeout(resolve, ms);
-    });
-  }
-
-  // --- Audio cache (IndexedDB) so replaying the same saved meditation ---
-  // --- never calls ElevenLabs / costs money again after the first time. ---
-  const AUDIO_DB_NAME = 'magi_audio_cache';
-  const AUDIO_STORE = 'clips';
-  let audioDbPromise = null;
-
-  function openAudioDb() {
-    if (audioDbPromise) return audioDbPromise;
-    audioDbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(AUDIO_DB_NAME, 1);
-      req.onupgradeneeded = () => {
-        req.result.createObjectStore(AUDIO_STORE);
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    return audioDbPromise;
-  }
-
-  async function hashText(text) {
-    const enc = new TextEncoder().encode(text);
-    const digest = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  async function getCachedClip(key) {
-    try {
-      const db = await openAudioDb();
-      return await new Promise((resolve) => {
-        const tx = db.transaction(AUDIO_STORE, 'readonly');
-        const req = tx.objectStore(AUDIO_STORE).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => resolve(null);
-      });
-    } catch (e) {
-      return null; // caching is a nice-to-have; never block playback on it
-    }
-  }
-
-  async function setCachedClip(key, blob) {
-    try {
-      const db = await openAudioDb();
-      await new Promise((resolve) => {
-        const tx = db.transaction(AUDIO_STORE, 'readwrite');
-        tx.objectStore(AUDIO_STORE).put(blob, key);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-      });
-    } catch (e) {
-      // fail silently — same reasoning as above
-    }
-  }
-
-  async function fetchClipUrl(text) {
-    const cacheKey = await hashText(text);
-    const cached = await getCachedClip(cacheKey);
-    if (cached) {
-      console.log(`%c[cache HIT]%c no ElevenLabs call — served from IndexedDB (key ${cacheKey.slice(0, 8)}…)`, "color:#0D9488;font-weight:bold", "color:inherit");
-      return URL.createObjectURL(cached);
-    }
-
-    console.log(`%c[cache MISS]%c calling ElevenLabs now (key ${cacheKey.slice(0, 8)}…) — will be cached for next time`, "color:#DC2645;font-weight:bold", "color:inherit");
-    const response = await fetch(`${WORKER_URL}/tts`, {
-      method: "POST",
-      body: JSON.stringify({ text, voiceId: ELEVENLABS_VOICE_ID, speed: 0.85 }),
-    });
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("TTS request failed:", response.status, errText);
-      throw new Error(`Voice failed to load (status ${response.status}). Check the ElevenLabs key in your Worker.`);
-    }
-    const blob = await response.blob();
-    setCachedClip(cacheKey, blob); // fire-and-forget, don't block playback on the write
-    return URL.createObjectURL(blob);
-  }
-
-  async function playClipUrl(url) {
-    const startedAt = Date.now();
-    const audio = new Audio(url);
-    speechAudioRef.current = audio;
-    setVoiceLoading(false);
-    await new Promise((resolve) => {
-      audio.onended = resolve;
-      audio.play();
-    });
-    return Date.now() - startedAt;
-  }
-
-  async function speakMeditation() {
-    setVoiceError(null);
-    setSpeaking(true);
-    setVoiceLoading(true);
-    stopFlagRef.current = false;
-
-    const parts = meditationParts;
-    const beats = parts
-      ? [
-          { type: "speak", text: parts.inductionPre },
-          { type: "pause", ms: 1500 },
-          { type: "speak", text: parts.breathCycleSSML },
-          { type: "pause", ms: 1500 },
-          { type: "speak", text: parts.inductionCountSetup },
-          { type: "pause", ms: 1200 },
-          { type: "speak", text: parts.countSSML },
-          { type: "pause", ms: 1200 },
-          { type: "speak", text: parts.inductionPost },
-          { type: "pause", ms: 2500 },
-          { type: "speak", text: parts.voidLight },
-          { type: "pause", ms: 3500 },
-          { type: "speak", text: parts.visualization },
-          { type: "pause", ms: 1800 },
-          { type: "speak", text: parts.anchor },
-          { type: "pause", ms: 2000 },
-          { type: "speak", text: parts.closingPre },
-          { type: "pause", ms: 1200 },
-          { type: "speak", text: parts.closingCountSSML },
-          { type: "pause", ms: 1000 },
-          { type: "speak", text: parts.closingPost },
-          { type: "pause", ms: 2000 },
-          { type: "speak", text: parts.reminder },
-          { type: "pause", ms: 1800 },
-          { type: "speak", text: parts.reciprocity },
-        ]
-      : meditation.split(/\n\n+/).filter((s) => s.trim()).map((text) => ({ type: "speak", text }));
-
-    function nextSpeakIndex(fromIdx) {
-      for (let i = fromIdx; i < beats.length; i++) {
-        if (beats[i].type === "speak") return i;
-      }
-      return -1;
-    }
-
-    const fetchCache = {};
-    function ensureFetching(idx) {
-      if (idx === -1 || fetchCache[idx]) return;
-      fetchCache[idx] = fetchClipUrl(beats[idx].text);
-    }
-
-    try {
-      const firstIdx = nextSpeakIndex(0);
-      if (firstClipPrefetchRef.current && beats[firstIdx] && beats[firstIdx].text === parts?.inductionPre) {
-        fetchCache[firstIdx] = firstClipPrefetchRef.current;
-        firstClipPrefetchRef.current = null;
-      }
-      ensureFetching(firstIdx);
-
-      for (let idx = 0; idx < beats.length; idx++) {
-        if (stopFlagRef.current) break;
-        const beat = beats[idx];
-
-        if (beat.type === "pause") {
-          ensureFetching(nextSpeakIndex(idx + 1));
-          await wait(beat.ms);
-          continue;
-        }
-
-        ensureFetching(idx);
-        let url = await fetchCache[idx];
-        if (!url) {
-          url = await fetchClipUrl(beat.text);
-        }
-        ensureFetching(nextSpeakIndex(idx + 1));
-
-        await playClipUrl(url);
-        URL.revokeObjectURL(url);
-      }
-    } catch (e) {
-      setVoiceError(e.message || "Voice failed to play. Check your connection and try again.");
-    } finally {
-      setSpeaking(false);
-      setVoiceLoading(false);
-      if (instantReadsRef.current) {
-        instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }
-  }
-
-  function stopSpeaking() {
-    stopFlagRef.current = true;
-    if (speechTimeoutRef.current) {
-      clearTimeout(speechTimeoutRef.current);
-      speechTimeoutRef.current = null;
-    }
-    if (speechAudioRef.current) {
-      speechAudioRef.current.pause();
-      speechAudioRef.current = null;
-    }
-    if (speechUrlRef.current) {
-      URL.revokeObjectURL(speechUrlRef.current);
-      speechUrlRef.current = null;
-    }
-    setSpeaking(false);
-    setVoiceLoading(false);
-    if (instantReadsRef.current) {
-      instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }
-
-  async function requestInstantRead() {
-    if (!instantReadQuestion.trim()) return;
-
-    // Testing shortcut — type "test888" to preview the out-of-reads /
-    // purchase-prompt state instantly. Never hits the Worker or Claude,
-    // so it costs nothing and works even offline.
-    if (instantReadQuestion.trim().toLowerCase() === "test888") {
-      setInstantReadError("out_of_reads");
-      setFreeReadsRemaining(0);
-      setInstantReadResponse(null);
-      setInstantReadQuestion("");
-      return;
-    }
-
-    setInstantReadLoading(true);
-    setInstantReadError(null);
-    setInstantReadResponse(null);
-    try {
-      const response = await fetch(`${WORKER_URL}/instant-read`, {
-        method: "POST",
-        body: JSON.stringify({ email: emailInput, question: instantReadQuestion }),
-      });
-      const data = await response.json();
-      if (response.status === 402) {
-        setInstantReadError("out_of_reads");
-        setFreeReadsRemaining(0);
-        setReadCredits(data.credits || 0);
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong. Try again.");
-      }
-      setInstantReadResponse(data.response);
-      setFreeReadsRemaining(data.freeRemaining);
-      setReadCredits(data.credits);
-      setInstantReadQuestion("");
-    } catch (e) {
-      setInstantReadError(e.message || "Something went wrong. Try again.");
-    } finally {
-      setInstantReadLoading(false);
-    }
-  }
-
-  function confirmOathAndSave() {
-    setUnlocked(true);
-    setStage("meditation");
-    startTone();
-    if (meditationParts && meditationParts.inductionPre) {
-      firstClipPrefetchRef.current = fetchClipUrl(meditationParts.inductionPre).catch(() => null);
-    }
-  }
-
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#F2F2F7",
-        color: "#1C1C1E",
-        fontFamily: "'EB Garamond', Georgia, serif",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "8vh 6vw",
-        position: "relative",
-      }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap');
-        .cinzel { font-family: 'Cinzel', serif; }
-        .glow-btn {
-          background: #0D9488;
-          color: #FFFFFF;
-          border: none;
-          padding: 1em 2.2em;
-          border-radius: 14px;
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.95rem;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: filter 0.2s ease, transform 0.1s ease;
-          box-shadow: 0 2px 8px rgba(13,148,136,0.35);
-        }
-        .glow-btn:hover { filter: brightness(1.08); }
-        .glow-btn:active { transform: scale(0.98); }
-        .glow-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-        .ghost-btn {
-          background: #FFFFFF;
-          color: #0D9488;
-          border: 1px solid rgba(0,0,0,0.1);
-          padding: 0.9em 1.9em;
-          border-radius: 14px;
-          font-family: 'Cinzel', serif;
-          font-size: 0.88rem;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          cursor: pointer;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-        .field {
-          width: 100%;
-          background: #FFFFFF;
-          border: 1px solid rgba(0,0,0,0.1);
-          color: #1C1C1E;
-          padding: 1em 1.1em;
-          border-radius: 12px;
-          font-family: 'EB Garamond', serif;
-          font-size: 1.15rem;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .pair-block {
-          border-radius: 14px;
-          padding: 1.3rem 1.4rem;
-          margin-bottom: 1rem;
-          animation: riseIn 0.5s ease;
-          text-align: left;
-          background: #FFFFFF;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-        }
-        @keyframes riseIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
-        @media (prefers-reduced-motion: reduce) { .pair-block { animation: none; } }
-        .audio-row { display:flex; gap:0.7rem; justify-content:center; margin-bottom:1.4rem; flex-wrap: wrap; }
-        .audio-btn {
-          display:flex; align-items:center; gap:0.4rem;
-          background:#FFFFFF; border:1px solid rgba(0,0,0,0.1);
-          color:#1C1C1E; padding:0.7em 1.2em; border-radius:24px;
-          font-family:'Cinzel',serif; font-size:0.78rem; letter-spacing:0.05em;
-          text-transform:uppercase; cursor:pointer;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-        p, li { font-size: 1.12rem; }
-      `}</style>
-
-      <div style={{ maxWidth: 560, width: "100%", textAlign: "center", position: "relative", zIndex: 1 }}>
-        <svg width="40" height="40" viewBox="0 0 100 100" style={{ marginBottom: "0.8rem" }}>
-          <polygon
-            points="50.00,16.00 55.36,37.07 74.04,25.96 62.93,44.64 84.00,50.00 62.93,55.36 74.04,74.04 55.36,62.93 50.00,84.00 44.64,62.93 25.96,74.04 37.07,55.36 16.00,50.00 37.07,44.64 25.96,25.96 44.64,37.07"
-            fill="#0D9488"
-          />
-        </svg>
-        <div className="cinzel" style={{ fontSize: "0.78rem", letterSpacing: "0.28em", color: "#0D9488", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-          888
-        </div>
-
-        {stage === "intro" && (
-          <>
-            <h1 className="cinzel" style={{ fontSize: "2.1rem", marginBottom: "1.2rem" }}>
-              The Draw
-            </h1>
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.2rem", lineHeight: 1.6 }}>
-              We're going to do a tarot read together, gently, to help you see your
-              true identity clearly — and what's been quietly standing between you
-              and it.
-            </p>
-            <p style={{ color: "#6E6E73", marginBottom: "2rem", lineHeight: 1.6 }}>
-              Afterward, you'll receive a free guided meditation to lovingly begin
-              the alchemy — the identity transformation into the Magician, your
-              fully embodied higher self — plus the full beginner's guide to the
-              Magician's Path.
-            </p>
-            <button className="glow-btn" onClick={() => setStage("goal")}>
-              Begin <ArrowRight size={16} style={{ verticalAlign: "middle", marginLeft: 6 }} />
-            </button>
-          </>
-        )}
-
-        {stage === "goal" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.4rem" }}>
-              Who Are You At Your Highest Potential?
-            </h2>
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem", lineHeight: 1.6 }}>
-              Not a goal. Not an outcome. <strong style={{ color: "#1C1C1E" }}>Let your imagination run free.</strong>{" "}
-              <strong style={{ color: "#1C1C1E" }}>You are worthy, deserving, powerful, and capable of anything.</strong>
-            </p>
-            <p style={{ color: "#0D9488", fontSize: "0.95rem", marginBottom: "0.8rem", fontWeight: 700 }}>
-              Include as much detail as possible — the more specific you are, the more this reading can actually speak to you.
-            </p>
-            <textarea
-              className="field"
-              rows={4}
-              placeholder="Describe that identity in as much detail as possible — how they think, carry themselves, speak, move through the world..."
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              style={{ marginBottom: "1.2rem" }}
-            />
-            <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="glow-btn" disabled={!goal.trim()} onClick={() => startDraw(goal)}>
-                Draw My Cards
-              </button>
-              <button className="ghost-btn" onClick={() => setStage("hsv1")}>
-                I'm not sure yet
-              </button>
-            </div>
-          </>
-        )}
-
-        {stage === "hsv1" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem", lineHeight: 1.5 }}>
-              That's okay. Close your eyes, and gently imagine who you'd be at
-              your highest potential — with as few limitations as possible.
-            </h2>
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem" }}>
-              Now keep expanding it. Bigger. Freer. Push it until it feels almost
-              unbelievable. When you have it, describe who that person is below.
-            </p>
-            <textarea
-              className="field"
-              rows={4}
-              placeholder="Who are they? How do they think, carry themselves, move through the world?"
-              value={hsv.vision}
-              onChange={(e) => setHsv({ ...hsv, vision: e.target.value })}
-              style={{ marginBottom: "1.2rem" }}
-            />
-            <button className="glow-btn" disabled={!hsv.vision.trim()} onClick={() => setStage("hsv2")}>
-              Continue
-            </button>
-          </>
-        )}
-
-        {stage === "hsv2" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.6rem" }}>
-              Take a moment. Is becoming that person worth it, to you?
-            </h2>
-            <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center" }}>
-              <button className="glow-btn" onClick={() => setStage("hsv3")}>Yes</button>
-              <button className="ghost-btn" onClick={() => setStage("goal")}>Let me rethink it</button>
-            </div>
-          </>
-        )}
-
-        {stage === "hsv3" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.6rem" }}>
-              Would you like to start moving toward becoming them?
-            </h2>
-            <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center" }}>
-              <button className="glow-btn" onClick={() => startDraw(hsv.vision)}>
-                Yes — Draw My Cards
-              </button>
-            </div>
-          </>
-        )}
-
-        {stage === "reveal" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.6rem" }}>
-              Your Cards Are Drawn
-            </h2>
-            <div style={{ marginBottom: "1.8rem" }}>
-              {pairs.map((pair, stepIdx) => (
-                <div
-                  key={stepIdx}
-                  className="pair-block"
-                  style={{ background: "#FFFFFF", border: `1.5px solid ${STEPS[stepIdx].color}88` }}
-                >
-                  <div className="cinzel" style={{ fontSize: "0.8rem", color: STEPS[stepIdx].color, letterSpacing: "0.1em", marginBottom: "0.7rem" }}>
-                    {STEPS[stepIdx].label}
-                  </div>
-                  <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
-                    {pair.map((c, i) => (
-                      <div key={i} style={{ flex: "1 1 45%" }}>
-                        <div className="cinzel" style={{ fontSize: "1.05rem" }}>{c.n}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.15rem", marginBottom: "1.6rem" }}>
-              Your results are ready.
-            </p>
-            <input
-              type="text"
-              className="field"
-              placeholder="Your name"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              style={{ marginBottom: "1rem" }}
-            />
-            <input
-              type="email"
-              className="field"
-              placeholder="you@email.com"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              style={{ marginBottom: "1.4rem" }}
-            />
-            <button
-              className="glow-btn"
-              disabled={!emailInput.includes("@") || !nameInput.trim()}
-              onClick={submitEmailGate}
-            >
-              See My Reading
-            </button>
-          </>
-        )}
-
-        {stage === "reading" && (
-          <>
-            {loading && (
-              <div style={{ padding: "3rem 0" }}>
-                <Loader2 size={30} style={{ color: "#0D9488", animation: "spin 1.2s linear infinite" }} />
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <p style={{ color: "#6E6E73", fontStyle: "italic", marginTop: "1rem" }}>Reading the cards...</p>
-              </div>
-            )}
-            {error && (
-              <>
-                <p style={{ color: "#DC2645", marginBottom: "1rem" }}>{error}</p>
-                <button className="glow-btn" onClick={() => generateReading(goal)}>Try Again</button>
-              </>
-            )}
-            {reading && !loading && (
-              <>
-                <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>Your Reading</h2>
-                {savedCode && (
-                  <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.4rem" }}>
-                    <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.7rem" }}>
-                      Save this link now — it brings you straight back to this exact reading anytime.
-                    </p>
-                    <button className="audio-btn" onClick={copyLink} style={{ width: "100%", justifyContent: "center" }}>
-                      {linkCopied ? "✓ Copied!" : "📋 Copy My Link"}
-                    </button>
-                  </div>
-                )}
-                <div style={{ textAlign: "left", marginBottom: "1.6rem" }}>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[0].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[0].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.archetype}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[1].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[1].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.blocking}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[2].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[2].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.pathForward}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[3].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[3].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75 }}>{reading.whoYouBecome}</p>
-                </div>
-                <button className="glow-btn" onClick={() => setStage("oath")}>
-                  Receive Your Meditation
-                </button>
-              </>
-            )}
-          </>
-        )}
-
-        {stage === "oath" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>
-              Speak This Aloud
-            </h2>
-            <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.3)", borderRadius: 14, padding: "1.6rem", marginBottom: "1.6rem" }}>
-              <p style={{ fontStyle: "italic", color: "#1C1C1E", fontSize: "1.2rem", lineHeight: 1.7, margin: 0 }}>
-                "{OATH}"
-              </p>
-            </div>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", justifyContent: "center", marginBottom: "1.6rem", cursor: "pointer" }}>
-              <input type="checkbox" checked={oathChecked} onChange={(e) => setOathChecked(e.target.checked)} style={{ width: 20, height: 20 }} />
-              <span style={{ color: "#6E6E73" }}>I have spoken this aloud</span>
-            </label>
-            <button
-              className="glow-btn"
-              disabled={!oathChecked}
-              onClick={confirmOathAndSave}
-            >
-              Confirm &amp; Receive
-            </button>
-          </>
-        )}
-
-        {stage === "meditation" && unlocked && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Your Meditation</h2>
-            <p style={{ color: "#6E6E73", marginBottom: "1rem", fontStyle: "italic" }}>
-              Sit down. Get comfortable. Let yourself settle in fully. Make sure
-              you are not operating any machinery.
-            </p>
-            {savedCode && (
-              <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.2rem" }}>
-                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.7rem" }}>
-                  Save this link now — it's your way back, every day, for the next eight days.
-                </p>
-                <button className="audio-btn" onClick={copyLink} style={{ width: "100%", justifyContent: "center" }}>
-                  {linkCopied ? "✓ Copied!" : "📋 Copy My Link"}
-                </button>
-              </div>
-            )}
-            {voiceError && (
-              <p style={{ color: "#DC2645", fontSize: "0.9rem", marginBottom: "1rem" }}>
-                {voiceError}
-              </p>
-            )}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.7rem", marginBottom: "1.2rem" }}>
-              <button
-                className="audio-btn"
-                onClick={tonePlaying ? stopTone : startTone}
-                style={{ padding: "0.5em 0.9em" }}
-              >
-                {tonePlaying ? <Square size={13} /> : <Play size={13} />}
-                {tonePlaying ? "Pause Tone" : "Play Healing Tone"}
-              </button>
-              <Volume2 size={14} style={{ color: "#6E6E73" }} />
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.02"
-                value={toneVolume}
-                onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                style={{ width: 120 }}
-              />
-              <span style={{ color: "#6E6E73", fontSize: "0.85rem" }}>{Math.round(toneVolume * 100)}%</span>
-            </div>
-            <div className="audio-row">
-              <button className="audio-btn" onClick={speaking ? stopSpeaking : speakMeditation}>
-                {speaking ? <Square size={13} /> : <Play size={13} />}
-                {speaking ? (voiceLoading ? "Loading..." : "Stop Reading") : "Read To Me"}
-              </button>
-              <button
-                className="audio-btn"
-                onClick={() => {
-                  const blob = new Blob([meditation], { type: "text/plain" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "my-identity-meditation.txt";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-                <Download size={13} /> Save as Text
-              </button>
-              {notifStatus === "default" && (
-                <button className="audio-btn" onClick={enableNotifications}>
-                  🔔 Enable Notifications
-                </button>
-              )}
-              {notifStatus === "granted" && (
-                <span className="audio-btn" style={{ cursor: "default", opacity: 0.7 }}>
-                  🔔 Notifications On
-                </span>
-              )}
-            </div>
-            {meditationParts ? (
-              <div style={{ textAlign: "left", marginBottom: "2rem" }}>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
-                  {meditationParts.inductionPre}
-                  <br /><br />
-                  {meditationParts.breathCycle}
-                  <br /><br />
-                  {meditationParts.inductionCountSetup}
-                  <br /><br />
-                  {meditationParts.inductionCount}
-                  <br /><br />
-                  {meditationParts.inductionPost}
-                </p>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
-                  {meditationParts.voidLight}
-                </p>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
-                  {meditationParts.visualization}
-                </p>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
-                  <strong style={{ color: "#0D9488" }}>{meditationParts.anchor}</strong>
-                </p>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line" }}>
-                  {meditationParts.closingPre}
-                  <br /><br />
-                  {meditationParts.closingCount}
-                  <br /><br />
-                  {meditationParts.closingPost}
-                  <br /><br />
-                  <strong style={{ color: "#0D9488" }}>
-                    {meditationParts.reminder}
-                  </strong>
-                  <br /><br />
-                  {meditationParts.reciprocity}
-                </p>
-              </div>
-            ) : (
-              <p style={{ color: "#1C1C1E", lineHeight: 1.85, textAlign: "left", whiteSpace: "pre-line", marginBottom: "2rem" }}>
-                {meditation}
-              </p>
-            )}
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "0.8rem" }}>
-              Your full beginner's guide has been sent to your email.
-            </p>
-
-            <div ref={instantReadsRef} style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 14, padding: "1.4rem 1.5rem", marginTop: "1.8rem", marginBottom: "1.8rem", textAlign: "left" }}>
-              <h3 className="cinzel" style={{ fontSize: "1.15rem", marginBottom: "0.5rem" }}>✨ Instant Reads</h3>
-              <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
-                Got a specific situation on your mind? Ask, and get a reading tied directly to your identity above.
-              </p>
-              <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.85rem", marginBottom: "1rem" }}>
-                {readCredits > 0
-                  ? `${readCredits} read${readCredits === 1 ? "" : "s"} remaining`
-                  : `${freeReadsRemaining} free read${freeReadsRemaining === 1 ? "" : "s"} remaining`}
-              </p>
-
-              {instantReadResponse && (
-                <div style={{ background: "#F2F2F7", borderRadius: 10, padding: "1rem", marginBottom: "1rem" }}>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
-                </div>
-              )}
-
-              {instantReadError === "out_of_reads" ? (
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ color: "#6E6E73", marginBottom: "1rem" }}>
-                    You're out of free reads. Get 12 more for $8.88.
-                  </p>
-                  <a
-                    href="#"
-                    className="glow-btn"
-                    style={{ textDecoration: "none", display: "inline-block", opacity: 0.6, cursor: "not-allowed" }}
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Get 12 Reads — $8.88 (coming soon)
-                  </a>
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    className="field"
-                    rows={3}
-                    placeholder="What's on your mind? Be as specific as you'd like..."
-                    value={instantReadQuestion}
-                    onChange={(e) => setInstantReadQuestion(e.target.value)}
-                    style={{ marginBottom: "1rem" }}
-                  />
-                  <button
-                    className="glow-btn"
-                    onClick={requestInstantRead}
-                    disabled={instantReadLoading || !instantReadQuestion.trim()}
-                    style={{ width: "100%" }}
-                  >
-                    {instantReadLoading ? "Reading..." : "Get My Instant Read"}
-                  </button>
-                  {instantReadError && instantReadError !== "out_of_reads" && (
-                    <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
-                  )}
-                </>
-              )}
-            </div>
-
-            <p style={{ color: "#0D9488", fontWeight: 700 }}>
-              One last reminder — save this page's link now, so you can return to
+              One last reminder — add this to your Home Screen now, so you can return to
               your meditation every day, for the next eight days.
             </p>
           </>
