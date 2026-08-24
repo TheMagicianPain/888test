@@ -344,14 +344,21 @@ function TarotDraw() {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
-      // Send the subscription to your Worker so it can push to this device later.
-      // (Requires a matching endpoint on the Worker — not built yet.)
+      // Send the subscription + their reading to the Worker — this is what
+      // lets it generate their 8 personalized reminder messages, once, right now.
       if (WORKER_URL) {
         fetch(`${WORKER_URL}/save-push-subscription`, {
           method: "POST",
-          body: JSON.stringify({ subscription, email: emailInput || null }),
+          body: JSON.stringify({
+            subscription,
+            email: emailInput || null,
+            name: nameInput || null,
+            goal,
+            reading,
+            visualization: meditationParts ? meditationParts.visualization : null,
+          }),
         }).catch(() => {
-          // don't block the user's experience if this isn't wired up yet
+          // don't block the user's experience if this fails silently
         });
       }
     } catch (e) {
