@@ -200,7 +200,7 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
 
   const reminder = `Repeat this practice daily, for the next eight days. Make sure to save this page's link, so you can return to it — and to this exact meditation — every day.`;
 
-  const reciprocity = `This was given to you freely. If it moved something in you, consider offering eight dollars and eighty-eight cents back into the exchange. The law of reciprocity helps the universe respond to your own desires, and the number eight, eight, eight carries a resonance that summons your higher self.`;
+  const reciprocity = `This was given to you freely. And whenever you need clarity — on a decision, a person, a specific moment — you can return for an instant read, tied directly to who you're becoming, any time you want one.`;
 
   const induction = `${inductionPre}\n\n${breathCycle}\n\n${inductionCountSetup}\n\n${inductionCount}\n\n${inductionPost}`;
   const closing = `${closingPre}\n\n${closingCount}\n\n${closingPost}`;
@@ -249,7 +249,7 @@ function TarotDraw() {
   const speechTimeoutRef = useRef(null);
   const stopFlagRef = useRef(false);
   const firstClipPrefetchRef = useRef(null);
-  const donationRef = useRef(null);
+  const instantReadsRef = useRef(null);
 
   function encodeToParam(obj) {
     const json = JSON.stringify(obj);
@@ -784,8 +784,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     } finally {
       setSpeaking(false);
       setVoiceLoading(false);
-      if (donationRef.current) {
-        donationRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (instantReadsRef.current) {
+        instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
   }
@@ -806,13 +806,25 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
     setSpeaking(false);
     setVoiceLoading(false);
-    if (donationRef.current) {
-      donationRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (instantReadsRef.current) {
+      instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 
   async function requestInstantRead() {
     if (!instantReadQuestion.trim()) return;
+
+    // Testing shortcut — type "test888" to preview the out-of-reads /
+    // purchase-prompt state instantly. Never hits the Worker or Claude,
+    // so it costs nothing and works even offline.
+    if (instantReadQuestion.trim().toLowerCase() === "test888") {
+      setInstantReadError("out_of_reads");
+      setFreeReadsRemaining(0);
+      setInstantReadResponse(null);
+      setInstantReadQuestion("");
+      return;
+    }
+
     setInstantReadLoading(true);
     setInstantReadError(null);
     setInstantReadResponse(null);
@@ -1284,26 +1296,11 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 {meditation}
               </p>
             )}
-            <div ref={donationRef} style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 14, padding: "1.3rem 1.5rem", marginBottom: "1.8rem" }}>
-              <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "0.9rem" }}>
-                Optional — amplify your intention by reciprocating energy.
-                The number 888 also resonates with abundance and the higher self.
-              </p>
-              <a
-                href="https://buy.stripe.com/bJeaEX1eO8BactZ8tidAk02"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glow-btn"
-                style={{ textDecoration: "none", display: "inline-block" }}
-              >
-                Send $8.88
-              </a>
-            </div>
             <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "0.8rem" }}>
               Your full beginner's guide has been sent to your email.
             </p>
 
-            <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 14, padding: "1.4rem 1.5rem", marginTop: "1.8rem", marginBottom: "1.8rem", textAlign: "left" }}>
+            <div ref={instantReadsRef} style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 14, padding: "1.4rem 1.5rem", marginTop: "1.8rem", marginBottom: "1.8rem", textAlign: "left" }}>
               <h3 className="cinzel" style={{ fontSize: "1.15rem", marginBottom: "0.5rem" }}>✨ Instant Reads</h3>
               <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
                 Got a specific situation on your mind? Ask, and get a reading tied directly to your identity above.
