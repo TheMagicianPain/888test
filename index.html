@@ -230,7 +230,6 @@ function TarotDraw() {
   const [nameInput, setNameInput] = useState("");
   const [oathChecked, setOathChecked] = useState(false);
   const [savedCode, setSavedCode] = useState(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [tonePlaying, setTonePlaying] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
@@ -242,7 +241,9 @@ function TarotDraw() {
   const [instantReadLoading, setInstantReadLoading] = useState(false);
   const [instantReadError, setInstantReadError] = useState(null);
   const [freeReadsRemaining, setFreeReadsRemaining] = useState(3);
-  const [readCredits, setReadCredits] = useState(0);
+  const [credits, setCredits] = useState(0);
+  const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
+  const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
@@ -280,6 +281,18 @@ function TarotDraw() {
     // even if there's a saved reading sitting in localStorage.
     if (params.get("home") === "true") {
       setStage("hub");
+      try {
+        const d = localStorage.getItem("magi_saved_reading");
+        if (d) {
+          const saved = decodeFromParam(d);
+          setEmailInput(saved.email || "");
+          setNameInput(saved.name || "");
+          refreshReadStatus(saved.email);
+        }
+      } catch (e) {
+        // No saved data yet, or it's corrupted — hub still works,
+        // just without credit counts until they have a reading.
+      }
       return;
     }
 
@@ -310,6 +323,7 @@ function TarotDraw() {
         setUnlocked(true);
         setStage("meditation");
         startTone();
+        refreshReadStatus(saved.email);
       } catch (e) {
         console.error("Failed to restore saved meditation:", e);
         setVoiceError("This saved link couldn't be loaded. It may be corrupted or incomplete.");
@@ -394,33 +408,6 @@ function TarotDraw() {
     ];
     setPairs(drawnPairs);
     setStage("reveal");
-  }
-
-  async function copyLink() {
-    const link = window.location.href;
-    try {
-      await navigator.clipboard.writeText(link);
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 3000);
-    } catch (e) {
-      // Fallback for in-app browsers (e.g. Instagram's webview) that block
-      // the Clipboard API — select the text so the user can copy manually.
-      try {
-        const temp = document.createElement("textarea");
-        temp.value = link;
-        temp.style.position = "fixed";
-        temp.style.opacity = "0";
-        document.body.appendChild(temp);
-        temp.focus();
-        temp.select();
-        document.execCommand("copy");
-        document.body.removeChild(temp);
-        setLinkCopied(true);
-        setTimeout(() => setLinkCopied(false), 3000);
-      } catch (e2) {
-        setVoiceError("Couldn't copy automatically — please copy the link from your browser's address bar.");
-      }
-    }
   }
 
   async function submitEmailGate() {
@@ -525,10 +512,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             goal,
             reading: parsed,
             visualization: parsed.visualization,
+            consumeNewMeditationCredit: consumingNewMeditationCredit,
           }),
         }).catch(() => {
           // don't block the user's experience if this fails silently
         });
+        setConsumingNewMeditationCredit(false);
       } catch (e) {
         console.error("Failed to encode save link:", e);
         setSavedCode(null);
@@ -826,6 +815,23 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
+  async function refreshReadStatus(email) {
+    if (!email) return;
+    try {
+      const response = await fetch(`${WORKER_URL}/read-status`, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setFreeReadsRemaining(data.freeRemaining);
+      setCredits(data.credits);
+    } catch (e) {
+      // Not critical — worst case, the count stays at its default until
+      // their next actual read attempt corrects it anyway.
+    }
+  }
+
   async function requestInstantRead() {
     if (!instantReadQuestion.trim()) return;
 
@@ -852,7 +858,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       if (response.status === 402) {
         setInstantReadError("out_of_reads");
         setFreeReadsRemaining(0);
-        setReadCredits(data.credits || 0);
+        setCredits(data.credits || 0);
         return;
       }
       if (!response.ok) {
@@ -860,12 +866,38 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       }
       setInstantReadResponse(data.response);
       setFreeReadsRemaining(data.freeRemaining);
-      setReadCredits(data.credits);
+      setCredits(data.credits);
       setInstantReadQuestion("");
     } catch (e) {
       setInstantReadError(e.message || "Something went wrong. Try again.");
     } finally {
       setInstantReadLoading(false);
+    }
+  }
+
+  function goToReadingFromHub() {
+    let d = null;
+    try {
+      d = localStorage.getItem("magi_saved_reading");
+    } catch (e) {
+      d = null;
+    }
+    if (!d) {
+      setStage("intro");
+      return;
+    }
+    try {
+      const saved = decodeFromParam(d);
+      setGoal(saved.goal);
+      setReading(saved.reading);
+      setEmailInput(saved.email || "");
+      setNameInput(saved.name || "");
+      setStage("reading");
+      refreshReadStatus(saved.email);
+    } catch (e) {
+      console.error("Failed to restore saved reading from hub:", e);
+      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
+      setStage("intro");
     }
   }
 
@@ -894,6 +926,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setUnlocked(true);
       setStage("meditation");
       startTone();
+      refreshReadStatus(saved.email);
       if (scrollToInstantReads) {
         setTimeout(() => {
           if (instantReadsRef.current) {
@@ -999,6 +1032,27 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         p, li { font-size: 1.12rem; }
       `}</style>
 
+      {emailInput && (stage === "hub" || stage === "reading" || stage === "meditation") && (
+        <div
+          style={{
+            position: "fixed",
+            top: "1rem",
+            right: "1rem",
+            background: "#FFFFFF",
+            border: "1px solid rgba(13,148,136,0.3)",
+            borderRadius: 20,
+            padding: "0.5em 1em",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            color: "#0D9488",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            zIndex: 20,
+          }}
+        >
+          💎 {credits}
+        </div>
+      )}
+
       <div style={{ maxWidth: 560, width: "100%", textAlign: "center", position: "relative", zIndex: 1 }}>
         <svg width="40" height="40" viewBox="0 0 100 100" style={{ marginBottom: "0.8rem" }}>
           <polygon
@@ -1024,11 +1078,41 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </button>
             <button
               className="ghost-btn"
+              onClick={goToReadingFromHub}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            >
+              My Reading
+            </button>
+            <button
+              className="ghost-btn"
               onClick={() => goToMeditationFromHub(true)}
               style={{ width: "100%" }}
             >
               ✨ Instant Reads
             </button>
+            {credits >= NEW_MEDITATION_COST ? (
+              <button
+                className="ghost-btn"
+                onClick={() => {
+                  setConsumingNewMeditationCredit(true);
+                  setGoal("");
+                  setStage("goal");
+                }}
+                style={{ width: "100%", marginTop: "1rem" }}
+              >
+                Start a New Meditation ({credits} credits available)
+              </button>
+            ) : (
+              <a
+                href={`https://buy.stripe.com/test_28E9AT1eO4kU51x7pedAk01?prefilled_email=${encodeURIComponent(emailInput)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ghost-btn"
+                style={{ width: "100%", marginTop: "1rem", textDecoration: "none", display: "block", textAlign: "center", boxSizing: "border-box" }}
+              >
+                Start a New Meditation — $8.88 (12 credits)
+              </a>
+            )}
           </>
         )}
 
@@ -1206,16 +1290,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             {reading && !loading && (
               <>
                 <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>Your Reading</h2>
-                {savedCode && (
-                  <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.4rem" }}>
-                    <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.7rem" }}>
-                      Save this link now — it brings you straight back to this exact reading anytime.
-                    </p>
-                    <button className="audio-btn" onClick={copyLink} style={{ width: "100%", justifyContent: "center" }}>
-                      {linkCopied ? "✓ Copied!" : "📋 Copy My Link"}
-                    </button>
-                  </div>
-                )}
                 <div style={{ textAlign: "left", marginBottom: "1.6rem" }}>
                   <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[0].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[0].label}</div>
                   <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.archetype}</p>
@@ -1306,15 +1380,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.5rem" }}>
                   Add this to your Home Screen
                 </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.92rem", margin: "0 0 0.9rem", lineHeight: 1.5 }}>
+                <p style={{ color: "#1C1C1E", fontSize: "0.92rem", margin: 0, lineHeight: 1.5 }}>
                   Tap the Share icon, then "Add to Home Screen." That's your way back every day — this exact reading, right where you left it, plus reminders.
                 </p>
-                <p style={{ color: "#6E6E73", fontSize: "0.82rem", margin: "0 0 0.5rem" }}>
-                  On a different device, or just prefer a link?
-                </p>
-                <button className="audio-btn" onClick={copyLink} style={{ width: "100%", justifyContent: "center" }}>
-                  {linkCopied ? "✓ Copied!" : "📋 Copy My Link Instead"}
-                </button>
               </div>
             )}
             {voiceError && (
@@ -1427,8 +1495,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 Got a specific situation on your mind? Ask, and get a reading tied directly to your identity above.
               </p>
               <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.85rem", marginBottom: "1rem" }}>
-                {readCredits > 0
-                  ? `${readCredits} read${readCredits === 1 ? "" : "s"} remaining`
+                {credits > 0
+                  ? `${credits} credit${credits === 1 ? "" : "s"} remaining`
                   : `${freeReadsRemaining} free read${freeReadsRemaining === 1 ? "" : "s"} remaining`}
               </p>
 
