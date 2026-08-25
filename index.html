@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>888App — The Magician's Path</title>
+<title>888 — The Magician's Path</title>
 
 <!-- PWA: home screen install -->
 <link rel="manifest" href="manifest.json">
@@ -1507,6 +1507,14 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
               </p>
 
+              {instantReadLoading && (
+                <div style={{ padding: "2rem 0", textAlign: "center" }}>
+                  <Loader2 size={30} style={{ color: "#b81426", animation: "spin 1.2s linear infinite" }} />
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  <p style={{ color: "#6E6E73", fontStyle: "italic", marginTop: "1rem" }}>Drawing your cards...</p>
+                </div>
+              )}
+
               {instantReadResponse && (
                 <div style={{ background: "#F2F2F7", borderRadius: 10, padding: "1rem", marginBottom: "1rem" }}>
                   {instantReadCards && (
@@ -1932,6 +1940,14 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1.4rem" }}>
               Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
             </p>
+
+            {instantReadLoading && (
+              <div style={{ padding: "2rem 0", textAlign: "center" }}>
+                <Loader2 size={30} style={{ color: "#b81426", animation: "spin 1.2s linear infinite" }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <p style={{ color: "#6E6E73", fontStyle: "italic", marginTop: "1rem" }}>Drawing your cards...</p>
+              </div>
+            )}
 
             {instantReadResponse && (
               <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 10, padding: "1rem", marginBottom: "1rem", textAlign: "left" }}>
