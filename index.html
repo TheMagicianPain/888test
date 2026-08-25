@@ -242,7 +242,7 @@ function TarotDraw() {
   const [speaking, setSpeaking] = useState(false);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [voiceError, setVoiceError] = useState(null);
-  const [toneVolume, setToneVolume] = useState(0.36); // 40% lower than the original 0.6 default
+  const [toneVolume, setToneVolume] = useState(0.252); // 40% lower than original, then another 30% quieter on top of that
   const [notifStatus, setNotifStatus] = useState("default"); // 'default' | 'granted' | 'denied' | 'unsupported'
   const [instantReadQuestion, setInstantReadQuestion] = useState("");
   const [instantReadResponse, setInstantReadResponse] = useState(null);
@@ -255,10 +255,12 @@ function TarotDraw() {
   const [recoveryEmailInput, setRecoveryEmailInput] = useState("");
   const [recoveryEmailError, setRecoveryEmailError] = useState(null);
   const [recoveryEmailLoading, setRecoveryEmailLoading] = useState(false);
+  const [showTonePopup, setShowTonePopup] = useState(false);
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
   const gainRef = useRef(null);
+  const toneStopTimeoutRef = useRef(null);
   const audioElRef = useRef(null);
   const speechAudioRef = useRef(null);
   const speechUrlRef = useRef(null);
@@ -559,10 +561,23 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       }
     }
 
-    // A tone graph may already exist from an earlier blocked attempt (e.g. the
-    // automatic call on page load). Don't create a second one — just reflect
-    // whether it's actually audible now that a real user gesture may have unlocked it.
+    // If Play is tapped again before a pending stop actually finished (within
+    // the 650ms fade-out window), cancel that stop and ramp back up in place
+    // instead of leaving the old node orphaned and creating a second one.
+    if (toneStopTimeoutRef.current) {
+      clearTimeout(toneStopTimeoutRef.current);
+      toneStopTimeoutRef.current = null;
+    }
+
+    // A tone graph may already exist — either from an earlier blocked
+    // autoplay attempt, or because we just cancelled a pending stop above.
+    // Don't create a second one — just make sure it's actually audible.
     if (oscRef.current) {
+      const gain = gainRef.current;
+      const targetVal = CUSTOM_TONE_URL ? toneVolume : toneVolume * 0.06;
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(targetVal, ctx.currentTime + 0.3);
       setTonePlaying(ctx.state === "running");
       return;
     }
@@ -616,13 +631,25 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     if (oscRef.current) {
       const ctx = audioCtxRef.current;
       const gain = gainRef.current;
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
       const src = oscRef.current;
-      setTimeout(() => {
-        src.stop();
-        src.disconnect();
+      gain.gain.cancelScheduledValues(ctx.currentTime);
+      gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+      toneStopTimeoutRef.current = setTimeout(() => {
+        try {
+          src.stop();
+          src.disconnect();
+        } catch (e) {
+          // Already stopped/disconnected — fine, nothing left to clean up.
+        }
+        // Only clear the ref if it's still pointing at THIS source — if
+        // Play was tapped again in the meantime, startTone() already
+        // reused it and we shouldn't null out a currently-active node.
+        if (oscRef.current === src) {
+          oscRef.current = null;
+        }
+        toneStopTimeoutRef.current = null;
       }, 650);
-      oscRef.current = null;
     }
     setTonePlaying(false);
   }
@@ -1115,24 +1142,100 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         p, li { font-size: 1.12rem; }
       `}</style>
 
-      {emailInput && (stage === "hub" || stage === "reading" || stage === "meditation") && (
+      {emailInput && (stage === "hub" || stage === "reading" || stage === "meditation" || stage === "instant-reads") && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: "1rem",
+              left: "1rem",
+              background: "#FFFFFF",
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              zIndex: 20,
+              cursor: "pointer",
+            }}
+            onClick={() => setShowTonePopup(true)}
+          >
+            <Volume2 size={16} style={{ color: "#0D9488" }} />
+          </div>
+          <div
+            style={{
+              position: "fixed",
+              top: "1rem",
+              right: "1rem",
+              background: "#FFFFFF",
+              border: "1px solid rgba(184,20,38,0.35)",
+              borderRadius: 20,
+              padding: "0.5em 1em",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              color: "#b81426",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              zIndex: 20,
+            }}
+          >
+            {credits} 💎
+          </div>
+        </>
+      )}
+
+      {showTonePopup && (
         <div
           style={{
             position: "fixed",
-            top: "1rem",
-            right: "1rem",
-            background: "#FFFFFF",
-            border: "1px solid rgba(13,148,136,0.3)",
-            borderRadius: 20,
-            padding: "0.5em 1em",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            color: "#0D9488",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            zIndex: 20,
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "6vw",
+            zIndex: 100,
           }}
+          onClick={() => setShowTonePopup(false)}
         >
-          💎 {credits}
+          <div
+            style={{ background: "#F2F2F7", borderRadius: 18, padding: "1.8rem 1.5rem", maxWidth: 340, width: "100%", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="cinzel" style={{ fontSize: "1.2rem", marginBottom: "1.2rem" }}>
+              🎵 Healing Tone
+            </h2>
+            <button
+              className="glow-btn"
+              onClick={tonePlaying ? stopTone : startTone}
+              style={{ width: "100%", marginBottom: "1.2rem" }}
+            >
+              {tonePlaying ? <Square size={13} /> : <Play size={13} />}
+              {" "}{tonePlaying ? "Pause Tone" : "Play Healing Tone"}
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.2rem" }}>
+              <Volume2 size={14} style={{ color: "#6E6E73" }} />
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.02"
+                value={toneVolume}
+                onChange={(e) => handleVolumeChange(Number(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <span style={{ color: "#6E6E73", fontSize: "0.85rem", minWidth: "2.5em" }}>{Math.round(toneVolume * 100)}%</span>
+            </div>
+            <button
+              className="ghost-btn"
+              onClick={() => setShowTonePopup(false)}
+              style={{ width: "100%" }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
@@ -1236,7 +1339,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 }}
                 style={{ width: "100%", marginTop: "1rem" }}
               >
-                Start a New Meditation — 💎 x{NEW_MEDITATION_COST}
+                Start a New Meditation — {NEW_MEDITATION_COST}💎
               </button>
             ) : (
               <a
@@ -1246,7 +1349,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 className="ghost-btn"
                 style={{ width: "100%", marginTop: "1rem", textDecoration: "none", display: "block", textAlign: "center", boxSizing: "border-box" }}
               >
-                Start a New Meditation — 💎 x{NEW_MEDITATION_COST} ($8.88)
+                Start a New Meditation — {NEW_MEDITATION_COST}💎 ($8.88)
               </a>
             )}
           </>
@@ -1552,27 +1655,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 {voiceError}
               </p>
             )}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.7rem", marginBottom: "1.2rem" }}>
-              <button
-                className="audio-btn"
-                onClick={tonePlaying ? stopTone : startTone}
-                style={{ padding: "0.5em 0.9em" }}
-              >
-                {tonePlaying ? <Square size={13} /> : <Play size={13} />}
-                {tonePlaying ? "Pause Tone" : "Play Healing Tone"}
-              </button>
-              <Volume2 size={14} style={{ color: "#6E6E73" }} />
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.02"
-                value={toneVolume}
-                onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                style={{ width: 120 }}
-              />
-              <span style={{ color: "#6E6E73", fontSize: "0.85rem" }}>{Math.round(toneVolume * 100)}%</span>
-            </div>
             <div className="audio-row">
               <button className="audio-btn" onClick={speaking ? stopSpeaking : speakMeditation}>
                 {speaking ? <Square size={13} /> : <Play size={13} />}
@@ -1653,20 +1735,20 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               your meditation every day, for the next eight days.
             </p>
 
-            <div style={{ background: "#FFFFFF", border: "2px solid rgba(13,148,136,0.4)", borderRadius: 14, padding: "1.4rem 1.4rem", marginTop: "1.8rem", textAlign: "center" }}>
+            <div style={{ background: "#FFFFFF", border: "2px solid rgba(184,20,38,0.45)", borderRadius: 14, padding: "1.4rem 1.4rem", marginTop: "1.8rem", textAlign: "center" }}>
               <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>
                 Have any questions, or need clarity at any point on your path?
               </p>
               <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "1rem" }}>
                 Do an Instant Read.
               </p>
-              <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>
-                💎 {credits} credit{credits === 1 ? "" : "s"} available
+              <p style={{ color: "#b81426", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>
+                {credits}💎 credit{credits === 1 ? "" : "s"} available
               </p>
               <button
                 className="glow-btn"
                 onClick={() => setStage("instant-reads")}
-                style={{ width: "100%" }}
+                style={{ width: "100%", background: "#b81426" }}
               >
                 ✨ Instant Read
               </button>
@@ -1694,8 +1776,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
               Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
             </p>
-            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.4rem" }}>
-              💎 {credits} credit{credits === 1 ? "" : "s"} remaining
+            <p style={{ color: "#b81426", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.4rem" }}>
+              {credits}💎 credit{credits === 1 ? "" : "s"} remaining
             </p>
 
             {instantReadResponse && (
@@ -1714,9 +1796,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   target="_blank"
                   rel="noopener noreferrer"
                   className="glow-btn"
-                  style={{ textDecoration: "none", display: "inline-block" }}
+                  style={{ textDecoration: "none", display: "inline-block", background: "#b81426" }}
                 >
-                  Refill — 💎 x12 for $8.88
+                  Refill — 12💎 for $8.88
                 </a>
               </div>
             ) : (
@@ -1733,9 +1815,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   className="glow-btn"
                   onClick={requestInstantRead}
                   disabled={instantReadLoading || !instantReadQuestion.trim()}
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", background: "#b81426" }}
                 >
-                  {instantReadLoading ? "Reading..." : "Get My Instant Read — 💎 x1"}
+                  {instantReadLoading ? "Reading..." : "Get My Instant Read — 1💎"}
                 </button>
                 {instantReadError && instantReadError !== "out_of_reads" && (
                   <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
