@@ -244,6 +244,10 @@ function TarotDraw() {
   const [credits, setCredits] = useState(0);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
+  const [hubNeedsEmail, setHubNeedsEmail] = useState(false);
+  const [hubEmailInput, setHubEmailInput] = useState("");
+  const [hubEmailError, setHubEmailError] = useState(null);
+  const [hubEmailLoading, setHubEmailLoading] = useState(false);
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
@@ -288,10 +292,11 @@ function TarotDraw() {
           setEmailInput(saved.email || "");
           setNameInput(saved.name || "");
           refreshReadStatus(saved.email);
+        } else {
+          setHubNeedsEmail(true);
         }
       } catch (e) {
-        // No saved data yet, or it's corrupted — hub still works,
-        // just without credit counts until they have a reading.
+        setHubNeedsEmail(true);
       }
       return;
     }
@@ -815,6 +820,62 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
+  async function loadProfileByEmail(email) {
+    if (!email || !email.includes("@")) {
+      setHubEmailError("Enter a valid email.");
+      return;
+    }
+    setHubEmailLoading(true);
+    setHubEmailError(null);
+    try {
+      const response = await fetch(`${WORKER_URL}/get-profile`, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      if (response.status === 404) {
+        setHubEmailError("No reading found for that email yet — try the link from your original email, or start fresh below.");
+        return;
+      }
+      if (!response.ok) {
+        setHubEmailError("Something went wrong. Try again.");
+        return;
+      }
+      const data = await response.json();
+      setEmailInput(data.email || email);
+      setNameInput(data.name || "");
+      setGoal(data.goal || "");
+      setReading(data.reading || null);
+      setCredits(data.credits || 0);
+      setFreeReadsRemaining(data.freeRemaining ?? 3);
+
+      if (data.visualization) {
+        const built = buildMeditation(data.visualization);
+        setMeditation(built.fullMeditation);
+        setMeditationParts(built.parts);
+      }
+
+      // Re-save locally so this same context works without asking again next time.
+      try {
+        const encoded = encodeToParam({
+          goal: data.goal,
+          reading: data.reading,
+          visualization: data.visualization,
+          email: data.email,
+          name: data.name,
+        });
+        localStorage.setItem("magi_saved_reading", encoded);
+      } catch (e) {
+        // Not critical — worst case, they just need to enter their email again next time.
+      }
+
+      setHubNeedsEmail(false);
+    } catch (e) {
+      setHubEmailError("Something went wrong. Check your connection and try again.");
+    } finally {
+      setHubEmailLoading(false);
+    }
+  }
+
   async function refreshReadStatus(email) {
     if (!email) return;
     try {
@@ -1064,7 +1125,44 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           888
         </div>
 
-        {stage === "hub" && (
+        {stage === "hub" && hubNeedsEmail && (
+          <>
+            <h1 className="cinzel" style={{ fontSize: "1.7rem", marginBottom: "1rem" }}>
+              Welcome back.
+            </h1>
+            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem", lineHeight: 1.6 }}>
+              This device doesn't have your reading saved locally yet. Enter the email you used, and we'll pull it from your account.
+            </p>
+            <input
+              type="email"
+              className="field"
+              placeholder="you@email.com"
+              value={hubEmailInput}
+              onChange={(e) => setHubEmailInput(e.target.value)}
+              style={{ marginBottom: "1rem" }}
+            />
+            {hubEmailError && (
+              <p style={{ color: "#DC2645", fontSize: "0.9rem", marginBottom: "1rem" }}>{hubEmailError}</p>
+            )}
+            <button
+              className="glow-btn"
+              onClick={() => loadProfileByEmail(hubEmailInput)}
+              disabled={hubEmailLoading || !hubEmailInput.trim()}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            >
+              {hubEmailLoading ? "Loading..." : "Load My Reading"}
+            </button>
+            <button
+              className="ghost-btn"
+              onClick={() => setStage("intro")}
+              style={{ width: "100%" }}
+            >
+              Start Fresh Instead
+            </button>
+          </>
+        )}
+
+        {stage === "hub" && !hubNeedsEmail && (
           <>
             <h1 className="cinzel" style={{ fontSize: "1.7rem", marginBottom: "2rem" }}>
               Welcome back.
