@@ -244,10 +244,10 @@ function TarotDraw() {
   const [credits, setCredits] = useState(0);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
-  const [hubNeedsEmail, setHubNeedsEmail] = useState(false);
-  const [hubEmailInput, setHubEmailInput] = useState("");
-  const [hubEmailError, setHubEmailError] = useState(null);
-  const [hubEmailLoading, setHubEmailLoading] = useState(false);
+  const [showProfileRecovery, setShowProfileRecovery] = useState(false);
+  const [recoveryEmailInput, setRecoveryEmailInput] = useState("");
+  const [recoveryEmailError, setRecoveryEmailError] = useState(null);
+  const [recoveryEmailLoading, setRecoveryEmailLoading] = useState(false);
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
@@ -293,10 +293,10 @@ function TarotDraw() {
           setNameInput(saved.name || "");
           refreshReadStatus(saved.email);
         } else {
-          setHubNeedsEmail(true);
+          setShowProfileRecovery(true);
         }
       } catch (e) {
-        setHubNeedsEmail(true);
+        setShowProfileRecovery(true);
       }
       return;
     }
@@ -333,6 +333,11 @@ function TarotDraw() {
         console.error("Failed to restore saved meditation:", e);
         setVoiceError("This saved link couldn't be loaded. It may be corrupted or incomplete.");
       }
+    } else {
+      // No URL data, nothing in local storage — we genuinely don't know
+      // who this is. Offer a fast way to reconnect instead of silently
+      // dropping them into the fresh-draw flow.
+      setShowProfileRecovery(true);
     }
   }, []);
 
@@ -822,22 +827,22 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
   async function loadProfileByEmail(email) {
     if (!email || !email.includes("@")) {
-      setHubEmailError("Enter a valid email.");
+      setRecoveryEmailError("Enter a valid email.");
       return;
     }
-    setHubEmailLoading(true);
-    setHubEmailError(null);
+    setRecoveryEmailLoading(true);
+    setRecoveryEmailError(null);
     try {
       const response = await fetch(`${WORKER_URL}/get-profile`, {
         method: "POST",
         body: JSON.stringify({ email }),
       });
       if (response.status === 404) {
-        setHubEmailError("No reading found for that email yet — try the link from your original email, or start fresh below.");
+        setRecoveryEmailError("No reading found for that email yet — try the link from your original email, or start fresh below.");
         return;
       }
       if (!response.ok) {
-        setHubEmailError("Something went wrong. Try again.");
+        setRecoveryEmailError("Something went wrong. Try again.");
         return;
       }
       const data = await response.json();
@@ -868,11 +873,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         // Not critical — worst case, they just need to enter their email again next time.
       }
 
-      setHubNeedsEmail(false);
+      setShowProfileRecovery(false);
+      setStage("hub");
     } catch (e) {
-      setHubEmailError("Something went wrong. Check your connection and try again.");
+      setRecoveryEmailError("Something went wrong. Check your connection and try again.");
     } finally {
-      setHubEmailLoading(false);
+      setRecoveryEmailLoading(false);
     }
   }
 
@@ -1114,6 +1120,59 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         </div>
       )}
 
+      {showProfileRecovery && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "6vw",
+            zIndex: 100,
+          }}
+        >
+          <div style={{ background: "#F2F2F7", borderRadius: 18, padding: "2rem 1.6rem", maxWidth: 420, width: "100%", textAlign: "center" }}>
+            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>
+              Welcome back.
+            </h2>
+            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem", lineHeight: 1.6 }}>
+              Already have a reading? Enter the email you used, and we'll pull it up.
+            </p>
+            <input
+              type="email"
+              className="field"
+              placeholder="you@email.com"
+              value={recoveryEmailInput}
+              onChange={(e) => setRecoveryEmailInput(e.target.value)}
+              style={{ marginBottom: "1rem" }}
+            />
+            {recoveryEmailError && (
+              <p style={{ color: "#DC2645", fontSize: "0.9rem", marginBottom: "1rem" }}>{recoveryEmailError}</p>
+            )}
+            <button
+              className="glow-btn"
+              onClick={() => loadProfileByEmail(recoveryEmailInput)}
+              disabled={recoveryEmailLoading || !recoveryEmailInput.trim()}
+              style={{ width: "100%", marginBottom: "1rem" }}
+            >
+              {recoveryEmailLoading ? "Loading..." : "Load My Reading"}
+            </button>
+            <button
+              className="ghost-btn"
+              onClick={() => {
+                setShowProfileRecovery(false);
+                setStage("intro");
+              }}
+              style={{ width: "100%" }}
+            >
+              Start Fresh Instead
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 560, width: "100%", textAlign: "center", position: "relative", zIndex: 1 }}>
         <svg width="40" height="40" viewBox="0 0 100 100" style={{ marginBottom: "0.8rem" }}>
           <polygon
@@ -1125,44 +1184,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           888
         </div>
 
-        {stage === "hub" && hubNeedsEmail && (
-          <>
-            <h1 className="cinzel" style={{ fontSize: "1.7rem", marginBottom: "1rem" }}>
-              Welcome back.
-            </h1>
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem", lineHeight: 1.6 }}>
-              This device doesn't have your reading saved locally yet. Enter the email you used, and we'll pull it from your account.
-            </p>
-            <input
-              type="email"
-              className="field"
-              placeholder="you@email.com"
-              value={hubEmailInput}
-              onChange={(e) => setHubEmailInput(e.target.value)}
-              style={{ marginBottom: "1rem" }}
-            />
-            {hubEmailError && (
-              <p style={{ color: "#DC2645", fontSize: "0.9rem", marginBottom: "1rem" }}>{hubEmailError}</p>
-            )}
-            <button
-              className="glow-btn"
-              onClick={() => loadProfileByEmail(hubEmailInput)}
-              disabled={hubEmailLoading || !hubEmailInput.trim()}
-              style={{ width: "100%", marginBottom: "1rem" }}
-            >
-              {hubEmailLoading ? "Loading..." : "Load My Reading"}
-            </button>
-            <button
-              className="ghost-btn"
-              onClick={() => setStage("intro")}
-              style={{ width: "100%" }}
-            >
-              Start Fresh Instead
-            </button>
-          </>
-        )}
-
-        {stage === "hub" && !hubNeedsEmail && (
+        {stage === "hub" && (
           <>
             <h1 className="cinzel" style={{ fontSize: "1.7rem", marginBottom: "2rem" }}>
               Welcome back.
