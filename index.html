@@ -168,6 +168,14 @@ function isInstagramBrowser() {
   return /Instagram/i.test(navigator.userAgent);
 }
 
+function isIOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+
 function buildMeditation(visualization) {
   const inductionPre = `Before we begin — make sure you are not operating any machinery, and that you are seated safely in a quiet space.
 
@@ -240,8 +248,7 @@ function TarotDraw() {
   const [instantReadResponse, setInstantReadResponse] = useState(null);
   const [instantReadLoading, setInstantReadLoading] = useState(false);
   const [instantReadError, setInstantReadError] = useState(null);
-  const [freeReadsRemaining, setFreeReadsRemaining] = useState(3);
-  const [credits, setCredits] = useState(0);
+  const [credits, setCredits] = useState(3);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
   const [showProfileRecovery, setShowProfileRecovery] = useState(false);
@@ -845,7 +852,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setGoal(data.goal || "");
       setReading(data.reading || null);
       setCredits(data.credits || 0);
-      setFreeReadsRemaining(data.freeRemaining ?? 3);
 
       if (data.visualization) {
         const built = buildMeditation(data.visualization);
@@ -885,7 +891,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       });
       if (!response.ok) return;
       const data = await response.json();
-      setFreeReadsRemaining(data.freeRemaining);
       setCredits(data.credits);
     } catch (e) {
       // Not critical — worst case, the count stays at its default until
@@ -896,12 +901,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
   async function requestInstantRead() {
     if (!instantReadQuestion.trim()) return;
 
-    // Testing shortcut — type "test888" to preview the out-of-reads /
+    // Testing shortcut — type "test888" to preview the out-of-credits /
     // purchase-prompt state instantly. Never hits the Worker or Claude,
     // so it costs nothing and works even offline.
     if (instantReadQuestion.trim().toLowerCase() === "test888") {
       setInstantReadError("out_of_reads");
-      setFreeReadsRemaining(0);
+      setCredits(0);
       setInstantReadResponse(null);
       setInstantReadQuestion("");
       return;
@@ -918,7 +923,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       const data = await response.json();
       if (response.status === 402) {
         setInstantReadError("out_of_reads");
-        setFreeReadsRemaining(0);
         setCredits(data.credits || 0);
         return;
       }
@@ -926,7 +930,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         throw new Error(data.error || "Something went wrong. Try again.");
       }
       setInstantReadResponse(data.response);
-      setFreeReadsRemaining(data.freeRemaining);
       setCredits(data.credits);
       setInstantReadQuestion("");
     } catch (e) {
@@ -1233,7 +1236,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 }}
                 style={{ width: "100%", marginTop: "1rem" }}
               >
-                Start a New Meditation ({credits} credits available)
+                Start a New Meditation — 💎 x{NEW_MEDITATION_COST}
               </button>
             ) : (
               <a
@@ -1243,7 +1246,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 className="ghost-btn"
                 style={{ width: "100%", marginTop: "1rem", textDecoration: "none", display: "block", textAlign: "center", boxSizing: "border-box" }}
               >
-                Start a New Meditation — $8.88 (12 credits)
+                Start a New Meditation — 💎 x{NEW_MEDITATION_COST} ($8.88)
               </a>
             )}
           </>
@@ -1512,17 +1515,35 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", margin: "0 0 0.9rem", textAlign: "center" }}>
                   📲 Save This — Add to Your Home Screen
                 </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                  <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
+                <p style={{ color: "#1C1C1E", fontSize: "0.98rem", fontWeight: 700, margin: "0 0 1.1rem", lineHeight: 1.6, textAlign: "center" }}>
+                  This saves your meditation and turns on daily reminders to actually do it.
                 </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                  <strong>2.</strong> Scroll down and tap "Add to Home Screen"
-                </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
-                  <strong>3.</strong> Tap "Add" in the top right
-                </p>
-                <p style={{ color: "#6E6E73", fontSize: "0.88rem", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
-                  That's your way back every day — this exact reading, right where you left it, plus reminders.
+                {isAndroid() ? (
+                  <>
+                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                      <strong>1.</strong> Tap the ⋮ menu (top right of your screen)
+                    </p>
+                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
+                      <strong>2.</strong> Tap "Add to Home screen," then "Add"
+                    </p>
+                    <img src="android-add-home.png" alt="How to add to home screen on Android" style={{ width: "100%", borderRadius: 10, marginBottom: "0.9rem" }} />
+                  </>
+                ) : (
+                  <>
+                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                      <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
+                    </p>
+                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                      <strong>2.</strong> Scroll down and tap "Add to Home Screen"
+                    </p>
+                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
+                      <strong>3.</strong> Tap "Add" in the top right
+                    </p>
+                    <img src="ios-add-home.png" alt="How to add to home screen on iPhone" style={{ width: "100%", borderRadius: 10, marginBottom: "0.9rem" }} />
+                  </>
+                )}
+                <p style={{ color: "#6E6E73", fontSize: "0.88rem", margin: 0, lineHeight: 1.5, fontStyle: "italic", textAlign: "center" }}>
+                  That's your way back every day — this exact reading, right where you left it.
                 </p>
               </div>
             )}
@@ -1631,6 +1652,25 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               One last reminder — add this to your Home Screen now, so you can return to
               your meditation every day, for the next eight days.
             </p>
+
+            <div style={{ background: "#FFFFFF", border: "2px solid rgba(13,148,136,0.4)", borderRadius: 14, padding: "1.4rem 1.4rem", marginTop: "1.8rem", textAlign: "center" }}>
+              <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>
+                Have any questions, or need clarity at any point on your path?
+              </p>
+              <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "1rem" }}>
+                Do an Instant Read.
+              </p>
+              <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.1rem" }}>
+                💎 {credits} credit{credits === 1 ? "" : "s"} available
+              </p>
+              <button
+                className="glow-btn"
+                onClick={() => setStage("instant-reads")}
+                style={{ width: "100%" }}
+              >
+                ✨ Instant Read
+              </button>
+            </div>
           </>
         )}
 
@@ -1654,10 +1694,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
               Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
             </p>
-            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.85rem", marginBottom: "1.4rem" }}>
-              {credits > 0
-                ? `${credits} credit${credits === 1 ? "" : "s"} remaining`
-                : `${freeReadsRemaining} free read${freeReadsRemaining === 1 ? "" : "s"} remaining`}
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", marginBottom: "1.4rem" }}>
+              💎 {credits} credit{credits === 1 ? "" : "s"} remaining
             </p>
 
             {instantReadResponse && (
@@ -1669,7 +1707,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             {instantReadError === "out_of_reads" ? (
               <div style={{ textAlign: "center" }}>
                 <p style={{ color: "#6E6E73", marginBottom: "1rem" }}>
-                  You're out of free reads. Get 12 more for $8.88.
+                  You're out of credits. Refill to keep going.
                 </p>
                 <a
                   href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
@@ -1678,7 +1716,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   className="glow-btn"
                   style={{ textDecoration: "none", display: "inline-block" }}
                 >
-                  Get 12 Reads — $8.88
+                  Refill — 💎 x12 for $8.88
                 </a>
               </div>
             ) : (
@@ -1697,7 +1735,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   disabled={instantReadLoading || !instantReadQuestion.trim()}
                   style={{ width: "100%" }}
                 >
-                  {instantReadLoading ? "Reading..." : "Get My Instant Read"}
+                  {instantReadLoading ? "Reading..." : "Get My Instant Read — 💎 x1"}
                 </button>
                 {instantReadError && instantReadError !== "out_of_reads" && (
                   <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
