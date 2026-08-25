@@ -48,6 +48,7 @@ const Play = (props) => <Icon {...props}><polygon points="5 3 19 12 5 21 5 3"/><
 const Square = (props) => <Icon {...props}><rect x="4" y="4" width="16" height="16" rx="2"/></Icon>;
 const Volume2 = (props) => <Icon {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></Icon>;
 const Download = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
+const Home = (props) => <Icon {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></Icon>;
 
 
 const MAJOR = [
@@ -256,6 +257,9 @@ function TarotDraw() {
   const [recoveryEmailError, setRecoveryEmailError] = useState(null);
   const [recoveryEmailLoading, setRecoveryEmailLoading] = useState(false);
   const [showTonePopup, setShowTonePopup] = useState(false);
+  const [showHomeScreenPopup, setShowHomeScreenPopup] = useState(false);
+  const [showReminderTimePopup, setShowReminderTimePopup] = useState(false);
+  const [reminderHourLocal, setReminderHourLocal] = useState(9);
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
@@ -394,6 +398,7 @@ function TarotDraw() {
       // Send the subscription + their reading to the Worker — this is what
       // lets it generate their 8 personalized reminder messages, once, right now.
       if (WORKER_URL) {
+        const reminderHourUTC = Math.round((reminderHourLocal + new Date().getTimezoneOffset() / 60 + 24) % 24);
         fetch(`${WORKER_URL}/save-push-subscription`, {
           method: "POST",
           body: JSON.stringify({
@@ -403,6 +408,7 @@ function TarotDraw() {
             goal,
             reading,
             visualization: meditationParts ? meditationParts.visualization : null,
+            reminderHourUTC,
           }),
         }).catch(() => {
           // don't block the user's experience if this fails silently
@@ -966,32 +972,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
-  function goToInstantReadsFromHub() {
-    let d = null;
-    try {
-      d = localStorage.getItem("magi_saved_reading");
-    } catch (e) {
-      d = null;
-    }
-    if (!d) {
-      setStage("intro");
-      return;
-    }
-    try {
-      const saved = decodeFromParam(d);
-      setGoal(saved.goal);
-      setReading(saved.reading);
-      setEmailInput(saved.email || "");
-      setNameInput(saved.name || "");
-      setStage("instant-reads");
-      refreshReadStatus(saved.email);
-    } catch (e) {
-      console.error("Failed to restore saved reading from hub:", e);
-      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
-      setStage("intro");
-    }
-  }
-
   function goToReadingFromHub() {
     let d = null;
     try {
@@ -1057,6 +1037,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     startTone();
     if (meditationParts && meditationParts.inductionPre) {
       firstClipPrefetchRef.current = fetchClipUrl(meditationParts.inductionPre).catch(() => null);
+    }
+    // Only prompt for a reminder time if they're in a regular browser tab —
+    // someone already using the installed home-screen version has been
+    // through this before and doesn't need it again.
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (!isStandalone) {
+      setShowReminderTimePopup(true);
     }
   }
 
@@ -1142,13 +1129,38 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         p, li { font-size: 1.12rem; }
       `}</style>
 
-      {emailInput && (stage === "hub" || stage === "reading" || stage === "meditation" || stage === "instant-reads") && (
+      {emailInput && (
         <>
           <div
             style={{
               position: "fixed",
               top: "1rem",
               left: "1rem",
+              background: "#FFFFFF",
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              zIndex: 20,
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              stopTone();
+              stopSpeaking();
+              setStage("hub");
+            }}
+          >
+            <Home size={16} style={{ color: "#0D9488" }} />
+          </div>
+          <div
+            style={{
+              position: "fixed",
+              top: "1rem",
+              left: "4.2rem",
               background: "#FFFFFF",
               border: "1px solid rgba(0,0,0,0.1)",
               borderRadius: "50%",
@@ -1239,6 +1251,113 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         </div>
       )}
 
+      {showReminderTimePopup && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "6vw",
+            zIndex: 100,
+          }}
+          onClick={() => setShowReminderTimePopup(false)}
+        >
+          <div
+            style={{ background: "#F2F2F7", borderRadius: 18, padding: "1.8rem 1.5rem", maxWidth: 340, width: "100%", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="cinzel" style={{ fontSize: "1.2rem", marginBottom: "0.8rem" }}>
+              🔔 When should we remind you?
+            </h2>
+            <p style={{ color: "#6E6E73", fontSize: "0.9rem", marginBottom: "1.2rem", lineHeight: 1.5 }}>
+              Pick a time for your daily reminder. You'll turn notifications on for real in a moment.
+            </p>
+            <select
+              className="field"
+              value={reminderHourLocal}
+              onChange={(e) => setReminderHourLocal(Number(e.target.value))}
+              style={{ marginBottom: "1.2rem" }}
+            >
+              {Array.from({ length: 24 }, (_, h) => h).map((h) => {
+                const label = h === 0 ? "12:00 AM" : h < 12 ? `${h}:00 AM` : h === 12 ? "12:00 PM" : `${h - 12}:00 PM`;
+                return (
+                  <option key={h} value={h}>{label}</option>
+                );
+              })}
+            </select>
+            <button
+              className="glow-btn"
+              onClick={() => setShowReminderTimePopup(false)}
+              style={{ width: "100%" }}
+            >
+              Save Time
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showHomeScreenPopup && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "6vw",
+            zIndex: 100,
+          }}
+          onClick={() => setShowHomeScreenPopup(false)}
+        >
+          <div
+            style={{ background: "#F2F2F7", borderRadius: 18, padding: "1.8rem 1.5rem", maxWidth: 380, width: "100%", textAlign: "left", maxHeight: "85vh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", margin: "0 0 0.9rem", textAlign: "center" }}>
+              📲 Save This — Add to Your Home Screen
+            </p>
+            <p style={{ color: "#1C1C1E", fontSize: "0.98rem", fontWeight: 700, margin: "0 0 1.1rem", lineHeight: 1.6, textAlign: "center" }}>
+              This saves your meditation and turns on daily reminders to actually do it.
+            </p>
+            {isAndroid() ? (
+              <>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                  <strong>1.</strong> Tap the ⋮ menu (top right of your screen)
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
+                  <strong>2.</strong> Tap "Add to Home screen," then "Add"
+                </p>
+                <img src="android-add-home.png" alt="How to add to home screen on Android" style={{ width: "100%", borderRadius: 10, marginBottom: "1.1rem" }} />
+              </>
+            ) : (
+              <>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                  <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                  <strong>2.</strong> Scroll down and tap "Add to Home Screen"
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
+                  <strong>3.</strong> Tap "Add" in the top right
+                </p>
+                <img src="ios-add-home.png" alt="How to add to home screen on iPhone" style={{ width: "100%", borderRadius: 10, marginBottom: "1.1rem" }} />
+              </>
+            )}
+            <button
+              className="ghost-btn"
+              onClick={() => setShowHomeScreenPopup(false)}
+              style={{ width: "100%" }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {showProfileRecovery && (
         <div
           style={{
@@ -1321,13 +1440,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               style={{ width: "100%", marginBottom: "1rem" }}
             >
               My Reading
-            </button>
-            <button
-              className="ghost-btn"
-              onClick={goToInstantReadsFromHub}
-              style={{ width: "100%" }}
-            >
-              ✨ Instant Reads
             </button>
             {credits >= NEW_MEDITATION_COST ? (
               <button
@@ -1594,62 +1706,23 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "meditation" && unlocked && (
           <>
-            <div style={{ textAlign: "left", marginBottom: "1rem" }}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  stopTone();
-                  stopSpeaking();
-                  setStage("hub");
-                }}
-                style={{ color: "#0D9488", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}
-              >
-                ← Menu
-              </a>
-            </div>
+            {savedCode && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.4rem" }}>
+                <img
+                  src={isAndroid() ? "android-menu-icon-only.png" : "ios-share-icon-only.png"}
+                  alt=""
+                  style={{ width: 32, height: 32, flexShrink: 0 }}
+                />
+                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.92rem", margin: 0, lineHeight: 1.4 }}>
+                  Add to Home Screen for the best experience
+                </p>
+              </div>
+            )}
             <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Your Meditation</h2>
             <p style={{ color: "#6E6E73", marginBottom: "1rem", fontStyle: "italic" }}>
               Sit down. Get comfortable. Let yourself settle in fully. Make sure
               you are not operating any machinery.
             </p>
-            {savedCode && (
-              <div style={{ background: "rgba(13,148,136,0.08)", border: "2px solid rgba(13,148,136,0.5)", borderRadius: 12, padding: "1.3rem 1.3rem", marginBottom: "1.4rem", textAlign: "left" }}>
-                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", margin: "0 0 0.9rem", textAlign: "center" }}>
-                  📲 Save This — Add to Your Home Screen
-                </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.98rem", fontWeight: 700, margin: "0 0 1.1rem", lineHeight: 1.6, textAlign: "center" }}>
-                  This saves your meditation and turns on daily reminders to actually do it.
-                </p>
-                {isAndroid() ? (
-                  <>
-                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                      <strong>1.</strong> Tap the ⋮ menu (top right of your screen)
-                    </p>
-                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
-                      <strong>2.</strong> Tap "Add to Home screen," then "Add"
-                    </p>
-                    <img src="android-add-home.png" alt="How to add to home screen on Android" style={{ width: "100%", borderRadius: 10, marginBottom: "0.9rem" }} />
-                  </>
-                ) : (
-                  <>
-                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                      <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
-                    </p>
-                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                      <strong>2.</strong> Scroll down and tap "Add to Home Screen"
-                    </p>
-                    <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
-                      <strong>3.</strong> Tap "Add" in the top right
-                    </p>
-                    <img src="ios-add-home.png" alt="How to add to home screen on iPhone" style={{ width: "100%", borderRadius: 10, marginBottom: "0.9rem" }} />
-                  </>
-                )}
-                <p style={{ color: "#6E6E73", fontSize: "0.88rem", margin: 0, lineHeight: 1.5, fontStyle: "italic", textAlign: "center" }}>
-                  That's your way back every day — this exact reading, right where you left it.
-                </p>
-              </div>
-            )}
             {voiceError && (
               <p style={{ color: "#DC2645", fontSize: "0.9rem", marginBottom: "1rem" }}>
                 {voiceError}
@@ -1730,12 +1803,15 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               </p>
             )}
 
-            <p style={{ color: "#0D9488", fontWeight: 700 }}>
-              One last reminder — add this to your Home Screen now, so you can return to
-              your meditation every day, for the next eight days.
-            </p>
+            <button
+              className="audio-btn"
+              onClick={() => setShowHomeScreenPopup(true)}
+              style={{ width: "100%", justifyContent: "center", marginBottom: "1.8rem" }}
+            >
+              📲 How to Add to Home Screen
+            </button>
 
-            <div style={{ background: "#FFFFFF", border: "2px solid rgba(184,20,38,0.45)", borderRadius: 14, padding: "1.4rem 1.4rem", marginTop: "1.8rem", textAlign: "center" }}>
+            <div style={{ background: "#FFFFFF", border: "2px solid rgba(184,20,38,0.45)", borderRadius: 14, padding: "1.4rem 1.4rem", textAlign: "center" }}>
               <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>
                 Have any questions, or need clarity at any point on your path?
               </p>
@@ -1750,7 +1826,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 onClick={() => setStage("instant-reads")}
                 style={{ width: "100%", background: "#b81426" }}
               >
-                ✨ Instant Read
+                ✨ Instant Read <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
               </button>
             </div>
           </>
@@ -1758,20 +1834,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "instant-reads" && (
           <>
-            <div style={{ textAlign: "left", marginBottom: "1rem" }}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  stopTone();
-                  stopSpeaking();
-                  setStage("hub");
-                }}
-                style={{ color: "#0D9488", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}
-              >
-                ← Menu
-              </a>
-            </div>
             <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>✨ Instant Reads</h2>
             <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
               Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
