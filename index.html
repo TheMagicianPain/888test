@@ -258,7 +258,6 @@ function TarotDraw() {
   const speechTimeoutRef = useRef(null);
   const stopFlagRef = useRef(false);
   const firstClipPrefetchRef = useRef(null);
-  const instantReadsRef = useRef(null);
 
   function encodeToParam(obj) {
     const json = JSON.stringify(obj);
@@ -793,14 +792,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         await playClipUrl(url);
         URL.revokeObjectURL(url);
       }
+      setStage("instant-reads");
     } catch (e) {
       setVoiceError(e.message || "Voice failed to play. Check your connection and try again.");
     } finally {
       setSpeaking(false);
       setVoiceLoading(false);
-      if (instantReadsRef.current) {
-        instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
     }
   }
 
@@ -820,9 +817,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
     setSpeaking(false);
     setVoiceLoading(false);
-    if (instantReadsRef.current) {
-      instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
   }
 
   async function loadProfileByEmail(email) {
@@ -942,6 +936,32 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
+  function goToInstantReadsFromHub() {
+    let d = null;
+    try {
+      d = localStorage.getItem("magi_saved_reading");
+    } catch (e) {
+      d = null;
+    }
+    if (!d) {
+      setStage("intro");
+      return;
+    }
+    try {
+      const saved = decodeFromParam(d);
+      setGoal(saved.goal);
+      setReading(saved.reading);
+      setEmailInput(saved.email || "");
+      setNameInput(saved.name || "");
+      setStage("instant-reads");
+      refreshReadStatus(saved.email);
+    } catch (e) {
+      console.error("Failed to restore saved reading from hub:", e);
+      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
+      setStage("intro");
+    }
+  }
+
   function goToReadingFromHub() {
     let d = null;
     try {
@@ -968,7 +988,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
-  function goToMeditationFromHub(scrollToInstantReads) {
+  function goToMeditationFromHub() {
     let d = null;
     try {
       d = localStorage.getItem("magi_saved_reading");
@@ -994,13 +1014,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setStage("meditation");
       startTone();
       refreshReadStatus(saved.email);
-      if (scrollToInstantReads) {
-        setTimeout(() => {
-          if (instantReadsRef.current) {
-            instantReadsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }, 300);
-      }
     } catch (e) {
       console.error("Failed to restore saved meditation from hub:", e);
       setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
@@ -1191,7 +1204,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </h1>
             <button
               className="glow-btn"
-              onClick={() => goToMeditationFromHub(false)}
+              onClick={() => goToMeditationFromHub()}
               style={{ width: "100%", marginBottom: "1rem" }}
             >
               Continue My Meditation
@@ -1205,7 +1218,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </button>
             <button
               className="ghost-btn"
-              onClick={() => goToMeditationFromHub(true)}
+              onClick={goToInstantReadsFromHub}
               style={{ width: "100%" }}
             >
               ✨ Instant Reads
@@ -1249,8 +1262,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             <p style={{ color: "#6E6E73", marginBottom: "2rem", lineHeight: 1.6 }}>
               Afterward, you'll receive a free guided meditation to lovingly begin
               the alchemy — the identity transformation into the Magician, your
-              fully embodied higher self — plus the full beginner's guide to the
-              Magician's Path.
+              fully embodied higher self.
             </p>
             <button className="glow-btn" onClick={() => setStage("goal")}>
               Begin <ArrowRight size={16} style={{ verticalAlign: "middle", marginLeft: 6 }} />
@@ -1496,12 +1508,21 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               you are not operating any machinery.
             </p>
             {savedCode && (
-              <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "1rem 1.1rem", marginBottom: "1.2rem" }}>
-                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1rem", margin: "0 0 0.5rem" }}>
-                  Add this to your Home Screen
+              <div style={{ background: "rgba(13,148,136,0.08)", border: "2px solid rgba(13,148,136,0.5)", borderRadius: 12, padding: "1.3rem 1.3rem", marginBottom: "1.4rem", textAlign: "left" }}>
+                <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "1.1rem", margin: "0 0 0.9rem", textAlign: "center" }}>
+                  📲 Save This — Add to Your Home Screen
                 </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.92rem", margin: 0, lineHeight: 1.5 }}>
-                  Tap the Share icon, then "Add to Home Screen." That's your way back every day — this exact reading, right where you left it, plus reminders.
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                  <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
+                  <strong>2.</strong> Scroll down and tap "Add to Home Screen"
+                </p>
+                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
+                  <strong>3.</strong> Tap "Add" in the top right
+                </p>
+                <p style={{ color: "#6E6E73", fontSize: "0.88rem", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>
+                  That's your way back every day — this exact reading, right where you left it, plus reminders.
                 </p>
               </div>
             )}
@@ -1605,71 +1626,84 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 {meditation}
               </p>
             )}
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "0.8rem" }}>
-              Your full beginner's guide has been sent to your email.
-            </p>
-
-            <div ref={instantReadsRef} style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 14, padding: "1.4rem 1.5rem", marginTop: "1.8rem", marginBottom: "1.8rem", textAlign: "left" }}>
-              <h3 className="cinzel" style={{ fontSize: "1.15rem", marginBottom: "0.5rem" }}>✨ Instant Reads</h3>
-              <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
-                Got a specific situation on your mind? Ask, and get a reading tied directly to your identity above.
-              </p>
-              <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.85rem", marginBottom: "1rem" }}>
-                {credits > 0
-                  ? `${credits} credit${credits === 1 ? "" : "s"} remaining`
-                  : `${freeReadsRemaining} free read${freeReadsRemaining === 1 ? "" : "s"} remaining`}
-              </p>
-
-              {instantReadResponse && (
-                <div style={{ background: "#F2F2F7", borderRadius: 10, padding: "1rem", marginBottom: "1rem" }}>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
-                </div>
-              )}
-
-              {instantReadError === "out_of_reads" ? (
-                <div style={{ textAlign: "center" }}>
-                  <p style={{ color: "#6E6E73", marginBottom: "1rem" }}>
-                    You're out of free reads. Get 12 more for $8.88.
-                  </p>
-                  <a
-                    href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="glow-btn"
-                    style={{ textDecoration: "none", display: "inline-block" }}
-                  >
-                    Get 12 Reads — $8.88
-                  </a>
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    className="field"
-                    rows={3}
-                    placeholder="What's on your mind? Be as specific as you'd like..."
-                    value={instantReadQuestion}
-                    onChange={(e) => setInstantReadQuestion(e.target.value)}
-                    style={{ marginBottom: "1rem" }}
-                  />
-                  <button
-                    className="glow-btn"
-                    onClick={requestInstantRead}
-                    disabled={instantReadLoading || !instantReadQuestion.trim()}
-                    style={{ width: "100%" }}
-                  >
-                    {instantReadLoading ? "Reading..." : "Get My Instant Read"}
-                  </button>
-                  {instantReadError && instantReadError !== "out_of_reads" && (
-                    <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
-                  )}
-                </>
-              )}
-            </div>
 
             <p style={{ color: "#0D9488", fontWeight: 700 }}>
               One last reminder — add this to your Home Screen now, so you can return to
               your meditation every day, for the next eight days.
             </p>
+          </>
+        )}
+
+        {stage === "instant-reads" && (
+          <>
+            <div style={{ textAlign: "left", marginBottom: "1rem" }}>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  stopTone();
+                  stopSpeaking();
+                  setStage("hub");
+                }}
+                style={{ color: "#0D9488", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}
+              >
+                ← Menu
+              </a>
+            </div>
+            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>✨ Instant Reads</h2>
+            <p style={{ color: "#6E6E73", fontSize: "0.95rem", marginBottom: "1rem" }}>
+              Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
+            </p>
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.85rem", marginBottom: "1.4rem" }}>
+              {credits > 0
+                ? `${credits} credit${credits === 1 ? "" : "s"} remaining`
+                : `${freeReadsRemaining} free read${freeReadsRemaining === 1 ? "" : "s"} remaining`}
+            </p>
+
+            {instantReadResponse && (
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 10, padding: "1rem", marginBottom: "1.4rem", textAlign: "left" }}>
+                <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
+              </div>
+            )}
+
+            {instantReadError === "out_of_reads" ? (
+              <div style={{ textAlign: "center" }}>
+                <p style={{ color: "#6E6E73", marginBottom: "1rem" }}>
+                  You're out of free reads. Get 12 more for $8.88.
+                </p>
+                <a
+                  href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glow-btn"
+                  style={{ textDecoration: "none", display: "inline-block" }}
+                >
+                  Get 12 Reads — $8.88
+                </a>
+              </div>
+            ) : (
+              <>
+                <textarea
+                  className="field"
+                  rows={4}
+                  placeholder="What's on your mind? Be as specific as you'd like..."
+                  value={instantReadQuestion}
+                  onChange={(e) => setInstantReadQuestion(e.target.value)}
+                  style={{ marginBottom: "1rem" }}
+                />
+                <button
+                  className="glow-btn"
+                  onClick={requestInstantRead}
+                  disabled={instantReadLoading || !instantReadQuestion.trim()}
+                  style={{ width: "100%" }}
+                >
+                  {instantReadLoading ? "Reading..." : "Get My Instant Read"}
+                </button>
+                {instantReadError && instantReadError !== "out_of_reads" && (
+                  <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
+                )}
+              </>
+            )}
           </>
         )}
       </div>
