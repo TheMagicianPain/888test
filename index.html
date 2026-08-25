@@ -213,13 +213,11 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
 
   const reminder = `Repeat this practice daily, for the next eight days. Add this to your home screen now, so you can return to it — and to this exact meditation — every day.`;
 
-  const reciprocity = `This was given to you freely. And whenever you need clarity — on a decision, a person, a specific moment — you can return for an instant read, tied directly to who you're becoming, any time you want one.`;
-
   const induction = `${inductionPre}\n\n${breathCycle}\n\n${inductionCountSetup}\n\n${inductionCount}\n\n${inductionPost}`;
   const closing = `${closingPre}\n\n${closingCount}\n\n${closingPost}`;
 
-  const fullMeditation = [induction, voidLight, visualization, anchor, closing, reminder, reciprocity].join("\n\n");
-  const parts = { inductionPre, breathCycle, breathCycleSSML, inductionCountSetup, inductionCount, countSSML, inductionPost, voidLight, visualization, anchor, closingPre, closingCount, closingCountSSML, closingPost, reminder, reciprocity };
+  const fullMeditation = [induction, voidLight, visualization, anchor, closing, reminder].join("\n\n");
+  const parts = { inductionPre, breathCycle, breathCycleSSML, inductionCountSetup, inductionCount, countSSML, inductionPost, voidLight, visualization, anchor, closingPre, closingCount, closingCountSSML, closingPost, reminder };
 
   return { fullMeditation, parts };
 }
@@ -258,6 +256,7 @@ function TarotDraw() {
   const [recoveryEmailLoading, setRecoveryEmailLoading] = useState(false);
   const [showTonePopup, setShowTonePopup] = useState(false);
   const [showHomeScreenPopup, setShowHomeScreenPopup] = useState(false);
+  const [hasAutoShownHomeScreenPopup, setHasAutoShownHomeScreenPopup] = useState(false);
   const [showReminderTimePopup, setShowReminderTimePopup] = useState(false);
   const [reminderHourLocal, setReminderHourLocal] = useState(9);
 
@@ -337,6 +336,7 @@ function TarotDraw() {
         setMeditationParts(built.parts);
         setEmailInput(saved.email || "");
         setNameInput(saved.name || "");
+        setSavedCode("saved");
         setUnlocked(true);
         setStage("meditation");
         startTone();
@@ -360,6 +360,26 @@ function TarotDraw() {
     };
   }, []);
 
+  // Auto-show the home screen instructions once someone scrolls to the
+  // bottom of their meditation — but only in a regular browser tab. Someone
+  // already using the installed standalone version doesn't need this at all.
+  useEffect(() => {
+    if (stage !== "meditation" || !savedCode || hasAutoShownHomeScreenPopup) return;
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (isStandalone) return;
+
+    function handleScroll() {
+      const scrolledToBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      if (scrolledToBottom) {
+        setShowHomeScreenPopup(true);
+        setHasAutoShownHomeScreenPopup(true);
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [stage, savedCode, hasAutoShownHomeScreenPopup]);
+
   // Register the service worker (installability + push receiving). Doesn't
   // prompt anything visible — permission is only asked when the user taps
   // "Enable Notifications" below.
@@ -381,6 +401,15 @@ function TarotDraw() {
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
     const rawData = atob(base64);
     return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+  }
+
+  function handleEnableNotificationsClick() {
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (isStandalone) {
+      enableNotifications();
+    } else {
+      setShowReminderTimePopup(true);
+    }
   }
 
   async function enableNotifications() {
@@ -786,8 +815,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           { type: "speak", text: parts.closingPost },
           { type: "pause", ms: 2000 },
           { type: "speak", text: parts.reminder },
-          { type: "pause", ms: 1800 },
-          { type: "speak", text: parts.reciprocity },
         ]
       : meditation.split(/\n\n+/).filter((s) => s.trim()).map((text) => ({ type: "speak", text }));
 
@@ -885,6 +912,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setGoal(data.goal || "");
       setReading(data.reading || null);
       setCredits(data.credits || 0);
+      if (data.reading) {
+        setSavedCode("saved");
+      }
 
       if (data.visualization) {
         const built = buildMeditation(data.visualization);
@@ -972,6 +1002,33 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
+  function goToInstantReadsFromHub() {
+    let d = null;
+    try {
+      d = localStorage.getItem("magi_saved_reading");
+    } catch (e) {
+      d = null;
+    }
+    if (!d) {
+      setStage("intro");
+      return;
+    }
+    try {
+      const saved = decodeFromParam(d);
+      setGoal(saved.goal);
+      setReading(saved.reading);
+      setEmailInput(saved.email || "");
+      setNameInput(saved.name || "");
+      setSavedCode("saved");
+      setStage("instant-reads");
+      refreshReadStatus(saved.email);
+    } catch (e) {
+      console.error("Failed to restore saved reading from hub:", e);
+      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
+      setStage("intro");
+    }
+  }
+
   function goToReadingFromHub() {
     let d = null;
     try {
@@ -1020,6 +1077,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setMeditationParts(built.parts);
       setEmailInput(saved.email || "");
       setNameInput(saved.name || "");
+      setSavedCode("saved");
       setUnlocked(true);
       setStage("meditation");
       startTone();
@@ -1037,13 +1095,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     startTone();
     if (meditationParts && meditationParts.inductionPre) {
       firstClipPrefetchRef.current = fetchClipUrl(meditationParts.inductionPre).catch(() => null);
-    }
-    // Only prompt for a reminder time if they're in a regular browser tab —
-    // someone already using the installed home-screen version has been
-    // through this before and doesn't need it again.
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-    if (!isStandalone) {
-      setShowReminderTimePopup(true);
     }
   }
 
@@ -1273,7 +1324,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               🔔 When should we remind you?
             </h2>
             <p style={{ color: "#6E6E73", fontSize: "0.9rem", marginBottom: "1.2rem", lineHeight: 1.5 }}>
-              Pick a time for your daily reminder. You'll turn notifications on for real in a moment.
+              Pick a time for your daily reminder, then we'll turn notifications on.
             </p>
             <select
               className="field"
@@ -1290,10 +1341,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </select>
             <button
               className="glow-btn"
-              onClick={() => setShowReminderTimePopup(false)}
+              onClick={() => {
+                setShowReminderTimePopup(false);
+                enableNotifications();
+              }}
               style={{ width: "100%" }}
             >
-              Save Time
+              Save Time & Enable Notifications
             </button>
           </div>
         </div>
@@ -1440,6 +1494,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               style={{ width: "100%", marginBottom: "1rem" }}
             >
               My Reading
+            </button>
+            <button
+              onClick={goToInstantReadsFromHub}
+              style={{ width: "100%", marginBottom: "1rem", background: "#b81426", color: "#fff", border: "none", padding: "0.9em 1.9em", borderRadius: 14, fontFamily: "'Cinzel', serif", fontSize: "0.88rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}
+            >
+              ✨ Instant Read <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
             </button>
             {credits >= NEW_MEDITATION_COST ? (
               <button
@@ -1706,7 +1766,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "meditation" && unlocked && (
           <>
-            {savedCode && (
+            {savedCode && !window.matchMedia("(display-mode: standalone)").matches && (
               <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.35)", borderRadius: 10, padding: "0.8rem 1rem", marginBottom: "1.4rem" }}>
                 <img
                   src={isAndroid() ? "android-menu-icon-only.png" : "ios-share-icon-only.png"}
@@ -1748,7 +1808,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <Download size={13} /> Save as Text
               </button>
               {notifStatus === "default" && (
-                <button className="audio-btn" onClick={enableNotifications}>
+                <button className="audio-btn" onClick={handleEnableNotificationsClick}>
                   🔔 Enable Notifications
                 </button>
               )}
@@ -1793,8 +1853,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   <strong style={{ color: "#0D9488" }}>
                     {meditationParts.reminder}
                   </strong>
-                  <br /><br />
-                  {meditationParts.reciprocity}
                 </p>
               </div>
             ) : (
@@ -1802,14 +1860,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 {meditation}
               </p>
             )}
-
-            <button
-              className="audio-btn"
-              onClick={() => setShowHomeScreenPopup(true)}
-              style={{ width: "100%", justifyContent: "center", marginBottom: "1.8rem" }}
-            >
-              📲 How to Add to Home Screen
-            </button>
 
             <div style={{ background: "#FFFFFF", border: "2px solid rgba(184,20,38,0.45)", borderRadius: 14, padding: "1.4rem 1.4rem", textAlign: "center" }}>
               <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.15rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>
