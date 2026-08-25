@@ -305,6 +305,8 @@ function TarotDraw() {
         setReading(saved.reading);
         setMeditation(built.fullMeditation);
         setMeditationParts(built.parts);
+        setEmailInput(saved.email || "");
+        setNameInput(saved.name || "");
         setUnlocked(true);
         setStage("meditation");
         startTone();
@@ -485,7 +487,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setMeditationParts(built.parts);
 
       try {
-        const encoded = encodeToParam({ goal, reading: parsed, visualization: parsed.visualization });
+        const encoded = encodeToParam({ goal, reading: parsed, visualization: parsed.visualization, email: emailInput, name: nameInput });
         const url = new URL(window.location.href);
         url.searchParams.set("d", encoded);
         window.history.replaceState({}, "", url);
@@ -887,6 +889,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setReading(saved.reading);
       setMeditation(built.fullMeditation);
       setMeditationParts(built.parts);
+      setEmailInput(saved.email || "");
+      setNameInput(saved.name || "");
       setUnlocked(true);
       setStage("meditation");
       startTone();
