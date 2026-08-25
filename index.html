@@ -229,7 +229,6 @@ function TarotDraw() {
   const [emailInput, setEmailInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [oathChecked, setOathChecked] = useState(false);
-  const [browserCheckAcknowledged, setBrowserCheckAcknowledged] = useState(false);
   const [savedCode, setSavedCode] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [tonePlaying, setTonePlaying] = useState(false);
@@ -1247,25 +1246,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 Tap the ••• (or ⋮) menu at the top right of this screen, then choose "Open in Browser" (or "Open in Safari").
               </p>
               <p style={{ color: "#6E6E73", lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>
-                Takes 5 seconds, and it's the only way to keep coming back to your practice.
+                You'll land right back here, ready to continue — that's it.
               </p>
             </div>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", justifyContent: "center", marginBottom: "1.6rem", cursor: "pointer" }}>
-              <input
-                type="checkbox"
-                checked={browserCheckAcknowledged}
-                onChange={(e) => setBrowserCheckAcknowledged(e.target.checked)}
-                style={{ width: 20, height: 20 }}
-              />
-              <span style={{ color: "#6E6E73" }}>I've opened this in my browser, not Instagram</span>
-            </label>
-            <button
-              className="glow-btn"
-              disabled={!browserCheckAcknowledged}
-              onClick={() => setStage("oath")}
-            >
-              Continue
-            </button>
           </>
         )}
 
@@ -1295,6 +1278,20 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "meditation" && unlocked && (
           <>
+            <div style={{ textAlign: "left", marginBottom: "1rem" }}>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  stopTone();
+                  stopSpeaking();
+                  setStage("hub");
+                }}
+                style={{ color: "#0D9488", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none" }}
+              >
+                ← Menu
+              </a>
+            </div>
             <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1rem" }}>Your Meditation</h2>
             <p style={{ color: "#6E6E73", marginBottom: "1rem", fontStyle: "italic" }}>
               Sit down. Get comfortable. Let yourself settle in fully. Make sure
