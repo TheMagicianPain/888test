@@ -1000,32 +1000,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
   }
 
-  function goToInstantReadsFromHub() {
-    let d = null;
-    try {
-      d = localStorage.getItem("magi_saved_reading");
-    } catch (e) {
-      d = null;
-    }
-    if (!d) {
-      setStage("intro");
-      return;
-    }
-    try {
-      const saved = decodeFromParam(d);
-      setGoal(saved.goal);
-      setReading(saved.reading);
-      setEmailInput(saved.email || "");
-      setNameInput(saved.name || "");
-      setSavedCode("saved");
-      setStage("instant-reads");
-      refreshReadStatus(saved.email);
-    } catch (e) {
-      console.error("Failed to restore saved reading from hub:", e);
-      setVoiceError("Couldn't load your saved reading. Try again, or start fresh below.");
-      setStage("intro");
-    }
-  }
+
 
   function goToReadingFromHub() {
     let d = null;
@@ -1493,12 +1468,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             >
               My Reading
             </button>
-            <button
-              onClick={goToInstantReadsFromHub}
-              style={{ width: "100%", marginBottom: "1rem", background: "#b81426", color: "#fff", border: "none", padding: "0.9em 1.9em", borderRadius: 14, fontFamily: "'Cinzel', serif", fontSize: "0.88rem", letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}
-            >
-              ✨ Instant Read <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
-            </button>
             {credits >= NEW_MEDITATION_COST ? (
               <button
                 className="ghost-btn"
@@ -1522,6 +1491,61 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 Start a New Meditation — {NEW_MEDITATION_COST}💎 ($8.88)
               </a>
             )}
+
+            <div style={{ background: "#FFFFFF", border: "2px solid rgba(184,20,38,0.45)", borderRadius: 14, padding: "1.4rem 1.4rem", marginTop: "1.4rem", textAlign: "left" }}>
+              <h2 className="cinzel" style={{ fontSize: "1.2rem", marginBottom: "0.5rem", textAlign: "center" }}>✨ Instant Reads</h2>
+              <p style={{ color: "#6E6E73", fontSize: "0.92rem", marginBottom: "1rem", textAlign: "center" }}>
+                Got a specific situation on your mind? Ask, and get a reading tied directly to your identity.
+              </p>
+              <p style={{ color: "#b81426", fontWeight: 700, fontSize: "1.05rem", marginBottom: "1.2rem", textAlign: "center" }}>
+                {credits}💎 credit{credits === 1 ? "" : "s"} remaining
+              </p>
+
+              {instantReadResponse && (
+                <div style={{ background: "#F2F2F7", borderRadius: 10, padding: "1rem", marginBottom: "1.2rem" }}>
+                  <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
+                </div>
+              )}
+
+              {instantReadError === "out_of_reads" ? (
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ color: "#6E6E73", marginBottom: "1rem" }}>
+                    You're out of credits. Refill to keep going.
+                  </p>
+                  <a
+                    href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="glow-btn"
+                    style={{ textDecoration: "none", display: "inline-block", background: "#b81426" }}
+                  >
+                    Refill — 12💎 for $8.88
+                  </a>
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    className="field"
+                    rows={4}
+                    placeholder="What's on your mind? Be as specific as you'd like..."
+                    value={instantReadQuestion}
+                    onChange={(e) => setInstantReadQuestion(e.target.value)}
+                    style={{ marginBottom: "1rem" }}
+                  />
+                  <button
+                    className="glow-btn"
+                    onClick={requestInstantRead}
+                    disabled={instantReadLoading || !instantReadQuestion.trim()}
+                    style={{ width: "100%", background: "#b81426" }}
+                  >
+                    {instantReadLoading ? "Reading..." : "Get My Instant Read — 1💎"}
+                  </button>
+                  {instantReadError && instantReadError !== "out_of_reads" && (
+                    <p style={{ color: "#DC2645", fontSize: "0.9rem", marginTop: "0.8rem" }}>{instantReadError}</p>
+                  )}
+                </>
+              )}
+            </div>
           </>
         )}
 
