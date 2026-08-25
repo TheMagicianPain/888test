@@ -211,7 +211,10 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
 
   const closingPost = `Open your eyes. Take a deep breath.`;
 
-  const reminder = `Repeat this practice daily, for the next eight days. Add this to your home screen now, so you can return to it — and to this exact meditation — every day.`;
+  const isStandaloneForReminder = window.matchMedia("(display-mode: standalone)").matches;
+  const reminder = isStandaloneForReminder
+    ? `Repeat this practice daily, for the next eight days. Return to this exact meditation, every day.`
+    : `Repeat this practice daily, for the next eight days. Add this to your home screen now, so you can return to it — and to this exact meditation — every day.`;
 
   const induction = `${inductionPre}\n\n${breathCycle}\n\n${inductionCountSetup}\n\n${inductionCount}\n\n${inductionPost}`;
   const closing = `${closingPre}\n\n${closingCount}\n\n${closingPost}`;
@@ -404,12 +407,7 @@ function TarotDraw() {
   }
 
   function handleEnableNotificationsClick() {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-    if (isStandalone) {
-      enableNotifications();
-    } else {
-      setShowReminderTimePopup(true);
-    }
+    setShowReminderTimePopup(true);
   }
 
   async function enableNotifications() {
