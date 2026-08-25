@@ -250,6 +250,10 @@ function TarotDraw() {
   const [instantReadResponse, setInstantReadResponse] = useState(null);
   const [instantReadCards, setInstantReadCards] = useState(null);
   const [instantReadSuggestedFollowUp, setInstantReadSuggestedFollowUp] = useState(null);
+  const [instantReadIsCrisis, setInstantReadIsCrisis] = useState(false);
+  const [instantReadPrayerOffer, setInstantReadPrayerOffer] = useState(null);
+  const [prayerCast, setPrayerCast] = useState(null);
+  const [prayerLoading, setPrayerLoading] = useState(false);
   const [instantReadLoading, setInstantReadLoading] = useState(false);
   const [instantReadError, setInstantReadError] = useState(null);
   const [credits, setCredits] = useState(3);
@@ -983,6 +987,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     setInstantReadResponse(null);
     setInstantReadCards(null);
     setInstantReadSuggestedFollowUp(null);
+    setInstantReadIsCrisis(false);
+    setInstantReadPrayerOffer(null);
+    setPrayerCast(null);
     try {
       const response = await fetch(`${WORKER_URL}/instant-read`, {
         method: "POST",
@@ -999,13 +1006,35 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       }
       setInstantReadResponse(data.response);
       setInstantReadCards(data.cards || null);
+      setInstantReadIsCrisis(!!data.isCrisis);
       setInstantReadSuggestedFollowUp(data.suggestedFollowUp || null);
+      setInstantReadPrayerOffer(data.prayerOffer || null);
       setCredits(data.credits);
       setInstantReadQuestion("");
     } catch (e) {
       setInstantReadError(e.message || "Something went wrong. Try again.");
     } finally {
       setInstantReadLoading(false);
+    }
+  }
+
+  async function castPrayer(prayerTitle) {
+    setPrayerLoading(true);
+    setInstantReadPrayerOffer(null);
+    try {
+      const response = await fetch(`${WORKER_URL}/cast-prayer`, {
+        method: "POST",
+        body: JSON.stringify({ email: emailInput, prayerTitle }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Something went wrong. Try again.");
+      }
+      setPrayerCast({ title: data.prayerTitle, text: data.prayer, suggestedFollowUp: data.suggestedFollowUp });
+    } catch (e) {
+      setInstantReadError(e.message || "Something went wrong. Try again.");
+    } finally {
+      setPrayerLoading(false);
     }
   }
 
@@ -1515,7 +1544,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 </div>
               )}
 
-              {instantReadResponse && (
+              {instantReadIsCrisis && instantReadResponse && (
+                <div style={{ background: "#FFFFFF", border: "2px solid rgba(13,148,136,0.4)", borderRadius: 10, padding: "1.2rem", marginBottom: "1rem", textAlign: "left" }}>
+                  <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
+                </div>
+              )}
+
+              {!instantReadIsCrisis && instantReadResponse && (
                 <div style={{ background: "#F2F2F7", borderRadius: 10, padding: "1rem", marginBottom: "1rem" }}>
                   {instantReadCards && (
                     <p style={{ color: "#b81426", fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "0.7rem" }}>
@@ -1526,7 +1561,50 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 </div>
               )}
 
-              {instantReadSuggestedFollowUp && (
+              {prayerLoading && (
+                <div style={{ padding: "1.5rem 0", textAlign: "center" }}>
+                  <Loader2 size={26} style={{ color: "#b81426", animation: "spin 1.2s linear infinite" }} />
+                </div>
+              )}
+
+              {prayerCast && (
+                <div style={{ background: "#FFFFFF", border: "1px solid rgba(184,20,38,0.3)", borderRadius: 10, padding: "1.1rem", marginBottom: "1rem", textAlign: "left" }}>
+                  <p style={{ color: "#b81426", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", marginBottom: "0.7rem", textTransform: "uppercase" }}>
+                    {prayerCast.title}
+                  </p>
+                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, margin: 0, fontStyle: "italic" }}>{prayerCast.text}</p>
+                </div>
+              )}
+
+              {prayerCast && prayerCast.suggestedFollowUp && (
+                <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+                  <button
+                    className="glow-btn"
+                    onClick={() => requestInstantRead(prayerCast.suggestedFollowUp)}
+                    disabled={instantReadLoading || credits < 1}
+                    style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
+                  >
+                    Yes — {prayerCast.suggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
+                  </button>
+                  <p style={{ color: "#6E6E73", fontSize: "0.8rem", margin: 0 }}>or ask something else below</p>
+                </div>
+              )}
+
+              {!prayerCast && instantReadPrayerOffer && (
+                <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+                  <button
+                    className="glow-btn"
+                    onClick={() => castPrayer(instantReadPrayerOffer)}
+                    disabled={prayerLoading}
+                    style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
+                  >
+                    {prayerLoading ? "..." : `Yes, Cast the Spell — ${instantReadPrayerOffer}`}
+                  </button>
+                  <p style={{ color: "#6E6E73", fontSize: "0.8rem", margin: 0 }}>or ask something else below</p>
+                </div>
+              )}
+
+              {!prayerCast && !instantReadPrayerOffer && instantReadSuggestedFollowUp && (
                 <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                   <button
                     className="glow-btn"
@@ -1949,7 +2027,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               </div>
             )}
 
-            {instantReadResponse && (
+            {instantReadIsCrisis && instantReadResponse && (
+              <div style={{ background: "#FFFFFF", border: "2px solid rgba(13,148,136,0.4)", borderRadius: 10, padding: "1.2rem", marginBottom: "1rem", textAlign: "left" }}>
+                <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
+              </div>
+            )}
+
+            {!instantReadIsCrisis && instantReadResponse && (
               <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 10, padding: "1rem", marginBottom: "1rem", textAlign: "left" }}>
                 {instantReadCards && (
                   <p style={{ color: "#b81426", fontSize: "0.78rem", fontWeight: 700, letterSpacing: "0.04em", marginBottom: "0.7rem" }}>
@@ -1960,7 +2044,50 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               </div>
             )}
 
-            {instantReadSuggestedFollowUp && (
+            {prayerLoading && (
+              <div style={{ padding: "1.5rem 0", textAlign: "center" }}>
+                <Loader2 size={26} style={{ color: "#b81426", animation: "spin 1.2s linear infinite" }} />
+              </div>
+            )}
+
+            {prayerCast && (
+              <div style={{ background: "#FFFFFF", border: "1px solid rgba(184,20,38,0.3)", borderRadius: 10, padding: "1.1rem", marginBottom: "1rem", textAlign: "left" }}>
+                <p style={{ color: "#b81426", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", marginBottom: "0.7rem", textTransform: "uppercase" }}>
+                  {prayerCast.title}
+                </p>
+                <p style={{ color: "#1C1C1E", lineHeight: 1.75, margin: 0, fontStyle: "italic" }}>{prayerCast.text}</p>
+              </div>
+            )}
+
+            {prayerCast && prayerCast.suggestedFollowUp && (
+              <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+                <button
+                  className="glow-btn"
+                  onClick={() => requestInstantRead(prayerCast.suggestedFollowUp)}
+                  disabled={instantReadLoading || credits < 1}
+                  style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
+                >
+                  Yes — {prayerCast.suggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
+                </button>
+                <p style={{ color: "#6E6E73", fontSize: "0.8rem", margin: 0 }}>or ask something else below</p>
+              </div>
+            )}
+
+            {!prayerCast && instantReadPrayerOffer && (
+              <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+                <button
+                  className="glow-btn"
+                  onClick={() => castPrayer(instantReadPrayerOffer)}
+                  disabled={prayerLoading}
+                  style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
+                >
+                  {prayerLoading ? "..." : `Yes, Cast the Spell — ${instantReadPrayerOffer}`}
+                </button>
+                <p style={{ color: "#6E6E73", fontSize: "0.8rem", margin: 0 }}>or ask something else below</p>
+              </div>
+            )}
+
+            {!prayerCast && !instantReadPrayerOffer && instantReadSuggestedFollowUp && (
               <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                 <button
                   className="glow-btn"
