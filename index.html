@@ -1444,12 +1444,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                     You're out of free reads. Get 12 more for $8.88.
                   </p>
                   <a
-                    href="#"
+                    href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="glow-btn"
-                    style={{ textDecoration: "none", display: "inline-block", opacity: 0.6, cursor: "not-allowed" }}
-                    onClick={(e) => e.preventDefault()}
+                    style={{ textDecoration: "none", display: "inline-block" }}
                   >
-                    Get 12 Reads — $8.88 (coming soon)
+                    Get 12 Reads — $8.88
                   </a>
                 </div>
               ) : (
