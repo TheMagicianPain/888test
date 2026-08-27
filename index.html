@@ -250,6 +250,8 @@ function TarotDraw() {
   const [homeScreenBonusGranted, setHomeScreenBonusGranted] = useState(false);
   const [notificationBonusGranted, setNotificationBonusGranted] = useState(false);
   const [hasDoneFirstInstantRead, setHasDoneFirstInstantRead] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [nextBonusLevelThreshold, setNextBonusLevelThreshold] = useState(8);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
   const [showProfileRecovery, setShowProfileRecovery] = useState(false);
@@ -571,6 +573,7 @@ Write like an actual person talking, not like AI-generated content:
 - Don't resolve every thought into a tidy, balanced conclusion. Real people trail off, get blunt, contradict themselves slightly.
 - Use contractions always — you're, it's, don't. Never write in a stiff, grammatically "complete" way nobody actually talks in.
 - If a line could appear in a hundred different generic horoscopes, cut it and say the actual specific thing instead.
+- Never use a gendered pronoun (he/him, she/her) for the person you're addressing, even inferred from their name. Speak to them directly as "you" — if a third-person pronoun is ever unavoidable, use "they/them," never assume a gender.
 
 The identity the person wants to become: "${identity}"
 
@@ -1048,6 +1051,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
       setNotificationBonusGranted(!!data.notificationBonusGranted);
       setHasDoneFirstInstantRead(!!data.hasDoneFirstInstantRead);
+      if (data.level !== undefined) setCurrentLevel(data.level);
+      if (data.nextBonusLevelThreshold !== undefined) setNextBonusLevelThreshold(data.nextBonusLevelThreshold);
       if (data.reading) {
         setSavedCode("saved");
       }
@@ -1100,6 +1105,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
       setNotificationBonusGranted(!!data.notificationBonusGranted);
       setHasDoneFirstInstantRead(!!data.hasDoneFirstInstantRead);
+      if (data.level !== undefined) setCurrentLevel(data.level);
+      if (data.nextBonusLevelThreshold !== undefined) setNextBonusLevelThreshold(data.nextBonusLevelThreshold);
     } catch (e) {
       // Not critical — worst case, the count stays at its default until
       // their next actual read attempt corrects it anyway.
@@ -1152,6 +1159,10 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setInstantReadSuggestedFollowUp(data.suggestedFollowUp || null);
       setInstantReadPrayerOffer(data.prayerOffer || null);
       setHasDoneFirstInstantRead(true);
+      if (data.level !== undefined) {
+        setCurrentLevel(data.level);
+        setNextBonusLevelThreshold(Math.ceil((data.level + 1) / 8) * 8);
+      }
       setInstantReadLeveledUpBonus(data.leveledUpBonus || null);
       setCredits(data.credits);
       setInstantReadQuestion("");
@@ -1427,6 +1438,26 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               }}
             >
               🔥 {currentStreak}
+            </div>
+          )}
+          {currentLevel > 0 && (
+            <div
+              style={{
+                position: "fixed",
+                top: "5.4rem",
+                right: "1rem",
+                background: "#FFFFFF",
+                border: "1px solid rgba(184,20,38,0.35)",
+                borderRadius: 20,
+                padding: "0.35em 0.9em",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "#b81426",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                zIndex: 20,
+              }}
+            >
+              Lvl {currentLevel} · next bonus at {nextBonusLevelThreshold}
             </div>
           )}
         </>
