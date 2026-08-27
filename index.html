@@ -243,6 +243,7 @@ function TarotDraw() {
   const [prayerLoading, setPrayerLoading] = useState(false);
   const [instantReadLoading, setInstantReadLoading] = useState(false);
   const [instantReadError, setInstantReadError] = useState(null);
+  const [showBuyCreditsPopup, setShowBuyCreditsPopup] = useState(false);
   const [credits, setCredits] = useState(3);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [streakPrizeMessage, setStreakPrizeMessage] = useState(null);
@@ -1116,6 +1117,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     if (questionToAsk.trim().toLowerCase() === "test888") {
       setInstantReadError("out_of_reads");
       setCredits(0);
+      setShowBuyCreditsPopup(true);
       setInstantReadResponse(null);
       setInstantReadCards(null);
       setInstantReadSuggestedFollowUp(null);
@@ -1140,6 +1142,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       if (response.status === 402) {
         setInstantReadError("out_of_reads");
         setCredits(data.credits || 0);
+        setShowBuyCreditsPopup(true);
         return;
       }
       if (!response.ok) {
@@ -1403,7 +1406,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               color: "#b81426",
               boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               zIndex: 20,
+              cursor: "pointer",
             }}
+            onClick={() => setShowBuyCreditsPopup(true)}
           >
             {credits} 💎
           </div>
@@ -1514,6 +1519,49 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         >
           <div style={{ background: "#b81426", color: "#fff", padding: "0.9rem 1.2rem", borderRadius: 14, fontWeight: 700, fontSize: "0.95rem", boxShadow: "0 4px 16px rgba(0,0,0,0.25)" }}>
             {streakPrizeMessage}
+          </div>
+        </div>
+      )}
+
+      {showBuyCreditsPopup && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+            padding: "6vw",
+          }}
+          onClick={() => setShowBuyCreditsPopup(false)}
+        >
+          <div
+            style={{ background: "#FFFFFF", borderRadius: 16, padding: "1.8rem 1.6rem", maxWidth: 320, width: "100%", boxShadow: "0 12px 32px rgba(0,0,0,0.3)", textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "2.4rem", marginBottom: "0.6rem" }}>💎</div>
+            <h2 className="cinzel" style={{ fontSize: "1.25rem", marginBottom: "0.6rem" }}>
+              {credits === 0 ? "You're Out of Credits" : "Get More Credits"}
+            </h2>
+            <p style={{ color: "#6E6E73", fontSize: "0.95rem", lineHeight: 1.5, marginBottom: "1.4rem" }}>
+              {credits === 0
+                ? "Refill to keep your Instant Reads going — 12 credits for $8.88."
+                : `You have ${credits}💎 right now. Grab 12 more for $8.88 whenever you need them.`}
+            </p>
+            <a
+              href={`https://buy.stripe.com/fZueVdaPo3gQ3XtaBqdAk04?prefilled_email=${encodeURIComponent(emailInput)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glow-btn"
+              style={{ width: "100%", textDecoration: "none", display: "block", boxSizing: "border-box", marginBottom: "0.8rem" }}
+            >
+              Buy 12 Credits — $8.88
+            </a>
+            <p style={{ color: "#8a8a8f", fontSize: "0.85rem", margin: 0, cursor: "pointer" }} onClick={() => setShowBuyCreditsPopup(false)}>
+              Not now
+            </p>
           </div>
         </div>
       )}
