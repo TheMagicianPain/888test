@@ -528,11 +528,12 @@ function TarotDraw() {
     setTimeout(() => {
       setShowCheckmark(false);
       setStage(nextStage);
-    }, 950);
+    }, 1800);
   }
 
   function startDraw(finalIdentity) {
     setGoal(finalIdentity);
+    setSavedCode(null);
     const drawnCards = drawFrom([...MAJOR, ...MINOR], 4);
     setPairs(drawnCards);
     setStage("reveal");
@@ -1423,7 +1424,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         </>
       )}
 
-      {emailInput && !window.matchMedia("(display-mode: standalone)").matches && !homeScreenBonusGranted && (
+      {emailInput && savedCode && !window.matchMedia("(display-mode: standalone)").matches && !homeScreenBonusGranted && (
         <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
           <span
             onClick={() => setShowHomeScreenPopup(true)}
@@ -1433,7 +1434,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           </span>
         </div>
       )}
-      {emailInput && (window.matchMedia("(display-mode: standalone)").matches || homeScreenBonusGranted) && notifStatus !== "granted" && !notificationBonusGranted && (
+      {emailInput && savedCode && (window.matchMedia("(display-mode: standalone)").matches || homeScreenBonusGranted) && notifStatus !== "granted" && !notificationBonusGranted && (
         <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
           <span
             onClick={() => setShowReminderTimePopup(true)}
@@ -1454,6 +1455,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             alignItems: "center",
             justifyContent: "center",
             zIndex: 200,
+            animation: "overlayFade 0.3s ease-out",
           }}
         >
           <div style={{ position: "relative", width: 100, height: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1464,7 +1466,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 height: 100,
                 borderRadius: "50%",
                 border: "2px solid #0D9488",
-                animation: "ringImpact 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+                opacity: 0,
+                animation: "ringImpact 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both",
               }}
             />
             <div
@@ -1476,7 +1479,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                animation: "checkWeight 0.75s cubic-bezier(0.22, 1, 0.36, 1)",
+                opacity: 0,
+                animation: "checkWeight 1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both",
                 boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
               }}
             >
@@ -1484,7 +1488,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </div>
           </div>
           <style>{`
-            @keyframes checkWeight { 0% { transform: scale(0.4); opacity: 0; } 55% { transform: scale(1.12); opacity: 1; } 78% { transform: scale(0.94); } 100% { transform: scale(1); opacity: 1; } }
+            @keyframes overlayFade { 0% { opacity: 0; } 100% { opacity: 1; } }
+            @keyframes checkWeight { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 80% { transform: scale(0.94); } 100% { transform: scale(1); opacity: 1; } }
             @keyframes ringImpact { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
           `}</style>
         </div>
@@ -2023,7 +2028,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   setTimeout(() => {
                     setShowCheckmark(false);
                     startDraw(combined);
-                  }, 950);
+                  }, 1800);
                 }}
               >
                 Draw My Cards
