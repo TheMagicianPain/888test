@@ -116,15 +116,6 @@ function drawFrom(deck, count) {
   return out;
 }
 
-const STEPS = [
-  { label: "Your Archetype", color: "#0D9488" },
-  { label: "What's Blocking You", color: "#DC2645" },
-  { label: "The Path Forward", color: "#14B8A6" },
-  { label: "Who You Become", color: "#7A2138" },
-];
-
-const OATH = `I am ready to ascend. I release my old, lesser identity. I am ready to heal whatever curse still binds my spirit and my name.`;
-
 const CUSTOM_TONE_URL = "https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3";
 const ZAPIER_WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/28412006/46h2c0y/";
 const ELEVENLABS_VOICE_ID = "jxJbAWE9XnDZWevjkL10";
@@ -185,24 +176,16 @@ When you're ready, close your eyes.`;
   const breathCycle = `Take a slow breath in... and let it out.`;
   const breathCycleSSML = `Take a slow breath in.<break time="3.0s" /> And let it out.`;
 
-  const inductionCountSetup = `Now, count slowly to eight with me. With each number, feel your eyelids grow heavier... heavier... as if they are made of stone.`;
+  const inductionCountSetup = `Now, count slowly to eight with me. With each number, feel your eyelids grow heavier... and feel the tension throughout your body begin to melt away.`;
 
   const inductionCount = `One... two... three... four... five... six... seven... eight.`;
   const countSSML = `One.<break time="0.8s" /> Two.<break time="0.8s" /> Three.<break time="0.8s" /> Four.<break time="0.8s" /> Five.<break time="0.8s" /> Six.<break time="0.8s" /> Seven.<break time="0.8s" /> Eight.`;
 
-  const inductionPost = `By now, they may feel too heavy to open. Try, gently — and notice just how heavy they've become.`;
+  const inductionPost = `By now, your eyelids may feel too heavy to open... and your body may feel completely loose, completely at ease. Now, listen to the sound of my voice.`;
 
-  const voidLight = `Imagine yourself inside a black void. But it isn't empty — it's warm. Comforting. Completely safe. You are held here, fully, by love itself.
+  const affirmations = `I am enough. I am loved. I am safe. Everything I desire is already mine. I no longer feel tension or struggle.`;
 
-In the distance, a single point of light appears. Bright white. Slowly, it begins to move toward you.
-
-It grows brighter... and brighter... until it completely surrounds you, consuming you entirely in its light.
-
-Feel its warmth now — not just on your skin, but inside you. Inside every cell of your body. Healing, as it moves through you.
-
-...Silence.`;
-
-  const anchor = `From this moment forward — anytime you say the number eight, eight, eight, or hear it spoken by someone else, this exact feeling becomes immediately available to you again.`;
+  const anchor = `Whenever you want to access this identity and its feelings quickly, you will say the number eight, eight, eight. And the more you do this meditation, the more powerful that number becomes — the more you shift into your new identity. Say it for eight days, and watch what happens.`;
 
   const closingPre = `Now, let's count back to eight together. With each number, you'll rise gently back into this moment — still holding everything you just became.`;
 
@@ -214,13 +197,13 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
   const isStandaloneForReminder = window.matchMedia("(display-mode: standalone)").matches;
   const reminder = isStandaloneForReminder
     ? `Repeat this practice daily, for the next eight days. Return to this exact meditation, every day.`
-    : `Repeat this practice daily, for the next eight days. Add this to your home screen now, so you can return to it — and to this exact meditation — every day.`;
+    : `Repeat this practice daily, for the next eight days. If you're on a web browser or Instagram, follow the simple instructions below to add the 888 App to your home screen for free.`;
 
   const induction = `${inductionPre}\n\n${breathCycle}\n\n${inductionCountSetup}\n\n${inductionCount}\n\n${inductionPost}`;
   const closing = `${closingPre}\n\n${closingCount}\n\n${closingPost}`;
 
-  const fullMeditation = [induction, voidLight, visualization, anchor, closing, reminder].join("\n\n");
-  const parts = { inductionPre, breathCycle, breathCycleSSML, inductionCountSetup, inductionCount, countSSML, inductionPost, voidLight, visualization, anchor, closingPre, closingCount, closingCountSSML, closingPost, reminder };
+  const fullMeditation = [induction, visualization, affirmations, anchor, closing, reminder].join("\n\n");
+  const parts = { inductionPre, breathCycle, breathCycleSSML, inductionCountSetup, inductionCount, countSSML, inductionPost, visualization, affirmations, anchor, closingPre, closingCount, closingCountSSML, closingPost, reminder };
 
   return { fullMeditation, parts };
 }
@@ -229,7 +212,7 @@ function TarotDraw() {
   const [stage, setStage] = useState("intro");
   const [goal, setGoal] = useState("");
   const [goalWork, setGoalWork] = useState("");
-  const [goalPresence, setGoalPresence] = useState("");
+  const [goalLook, setGoalLook] = useState("");
   const [goalMindset, setGoalMindset] = useState("");
   const [hsv, setHsv] = useState({ vision: "" });
   const [pairs, setPairs] = useState([]);
@@ -241,7 +224,6 @@ function TarotDraw() {
   const [unlocked, setUnlocked] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [nameInput, setNameInput] = useState("");
-  const [oathChecked, setOathChecked] = useState(false);
   const [savedCode, setSavedCode] = useState(null);
   const [tonePlaying, setTonePlaying] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -287,6 +269,7 @@ function TarotDraw() {
   const speechTimeoutRef = useRef(null);
   const speechWaitResolveRef = useRef(null);
   const stopFlagRef = useRef(false);
+  const halfListenedTrackedRef = useRef(false);
   const firstClipPrefetchRef = useRef(null);
 
   function encodeToParam(obj) {
@@ -445,7 +428,7 @@ function TarotDraw() {
   // real, verifiable signal — there's no browser event for "tapped Add to
   // Home Screen" itself, only for actually running from the installed icon.
   useEffect(() => {
-    if (!emailInput || homeScreenBonusGranted) return;
+    if (!emailInput || !savedCode || homeScreenBonusGranted) return;
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
     if (!isStandalone) return;
 
@@ -465,10 +448,10 @@ function TarotDraw() {
       });
   }, [emailInput, homeScreenBonusGranted]);
 
-  // Track this as a real app-open the moment we know who this is — this is
-  // what actually builds/breaks their daily streak, independent of anything
-  // else on the page.
-  useEffect(() => {
+  // Called specifically once someone has listened past the halfway point of
+  // their meditation — NOT just from opening the app. That's the actual bar
+  // for a "real" daily return, not just launching the page.
+  function trackMeditationHalfListened() {
     if (!emailInput) return;
     fetch(`${WORKER_URL}/track-app-open`, {
       method: "POST",
@@ -488,7 +471,7 @@ function TarotDraw() {
       .catch(() => {
         // Not critical — streak just won't update visually this specific load.
       });
-  }, [emailInput]);
+  }
 
   function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -540,15 +523,8 @@ function TarotDraw() {
 
   function startDraw(finalIdentity) {
     setGoal(finalIdentity);
-    const majors = drawFrom(MAJOR, 2);
-    const minors = drawFrom(MINOR, 6);
-    const drawnPairs = [
-      [majors[0], minors[0]],
-      [minors[1], minors[2]],
-      [minors[3], minors[4]],
-      [majors[1], minors[5]],
-    ];
-    setPairs(drawnPairs);
+    const drawnCards = drawFrom([...MAJOR, ...MINOR], 4);
+    setPairs(drawnCards);
     setStage("reveal");
   }
 
@@ -570,9 +546,7 @@ function TarotDraw() {
     setLoading(true);
     setError(null);
     setStage("reading");
-    const cardList = pairs
-      .map((pair, i) => `${STEPS[i].label}: ${pair.map((c) => `${c.n} (${c.k})`).join(" + ")}`)
-      .join("\n");
+    const cardList = pairs.map((c) => `${c.n} (${c.k})`).join("\n");
 
     const prompt = `You are writing in the voice of "The Magician's Path" — an esoteric identity-transformation brand built on tarot archetypes, chakra ascension through alchemy, and a framework of "Curses" (specific blocks like Identity Vacuum, Soul Bind, False Beliefs, Energy Leakage) that keep someone from full expression. Voice: direct, warm, confident, spiritually serious but not stiff.
 
@@ -588,16 +562,20 @@ Write like an actual person talking, not like AI-generated content:
 
 The identity the person wants to become: "${identity}"
 
-Four card pairs were drawn:
+Four cards were drawn:
 ${cardList}
+
+Write ONE single, succinct, cohesive reading — not separate labeled sections. It should:
+1. Open by validating them — genuinely affirm something true and specific about where they are right now.
+2. Keep a push-and-pull rhythm throughout: affirm, then challenge, then affirm again — never flat, never one-note.
+3. Still walk through their current archetype, what's blocking them, and their path toward the future identity — woven together as one flowing piece, not labeled or separated.
+4. Close by using their own likely pain point to build real desire for the deep affirmation/meditation waiting for them — make it feel necessary, not optional.
+Keep it tight — this should read fast, not like an essay. Roughly 130-170 words total.
 
 Respond ONLY with a JSON object, no markdown, no preamble:
 {
-  "archetype": "A personalized interpretation of the 'Your Archetype' card pair (${pairs[0].map((c) => c.n).join(" and ")}), addressing the reader as 'you', tied to their stated identity. 45-60 words.",
-  "blocking": "A personalized interpretation of the 'What's Blocking You' card pair (${pairs[1].map((c) => c.n).join(" and ")}). 45-60 words.",
-  "pathForward": "A personalized interpretation of the 'The Path Forward' card pair (${pairs[2].map((c) => c.n).join(" and ")}), tying the solution to healing the inner child and the alchemy of stepping into a higher identity. 45-60 words.",
-  "whoYouBecome": "A personalized interpretation of the 'Who You Become' card pair (${pairs[3].map((c) => c.n).join(" and ")}). 45-60 words.",
-  "visualization": "The centerpiece of a guided visualization, second person, present tense, calm hypnotic pacing with natural pauses written as ellipses. Describe the person vividly embodying the identity '${identity}', informed by the Who You Become card pair (${pairs[3].map((c) => c.n).join(" and ")}). Structure it in this exact order: (1) See this version of themselves clearly, feeling it fully. (2) Take a deep breath and release all need or desire for a specific outcome, feeling that reality settle into their bones. (3) They turn and see a child standing nearby, watching them in awe — they realize it is themselves, no older than eight years old. They walk toward the child, embrace them slowly, and the two merge until they are one single person. (4) From there, they are fully this new identity now, completely embodied. About 200-240 words. Do not include any counting, breathing instructions, eyes-opening language, session-closing language, or any mention of the number 888 — those are all handled separately."
+  "reading": "The full single reading, as described above.",
+  "visualization": "The centerpiece of a guided visualization, second person, present tense, calm hypnotic pacing with natural pauses written as ellipses. Describe the person vividly embodying the identity '${identity}', informed by the cards drawn. Make it visceral — focus on the physical sensations and emotions of actually being this identity, not abstract description. About 150-200 words. Do not include any counting, breathing instructions, eyes-opening language, session-closing language, or any mention of the number 888 — those are all handled separately."
 }`;
 
     try {
@@ -614,19 +592,14 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       const text = data.content.map((b) => b.text || "").join("");
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
-      setReading({
-        archetype: parsed.archetype,
-        blocking: parsed.blocking,
-        pathForward: parsed.pathForward,
-        whoYouBecome: parsed.whoYouBecome,
-      });
+      setReading(parsed.reading);
 
       const built = buildMeditation(parsed.visualization);
       setMeditation(built.fullMeditation);
       setMeditationParts(built.parts);
 
       try {
-        const encoded = encodeToParam({ goal, reading: parsed, visualization: parsed.visualization, email: emailInput, name: nameInput });
+        const encoded = encodeToParam({ goal, reading: parsed.reading, visualization: parsed.visualization, email: emailInput, name: nameInput });
         const url = new URL(window.location.href);
         url.searchParams.set("d", encoded);
         window.history.replaceState({}, "", url);
@@ -923,6 +896,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     setSpeaking(true);
     setVoiceLoading(true);
     stopFlagRef.current = false;
+    halfListenedTrackedRef.current = false;
 
     const parts = meditationParts;
     const beats = parts
@@ -937,9 +911,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           { type: "pause", ms: 1200 },
           { type: "speak", text: parts.inductionPost },
           { type: "pause", ms: 2500 },
-          { type: "speak", text: parts.voidLight },
-          { type: "pause", ms: 3500 },
           { type: "speak", text: parts.visualization },
+          { type: "pause", ms: 1800 },
+          { type: "speak", text: parts.affirmations },
           { type: "pause", ms: 1800 },
           { type: "speak", text: parts.anchor },
           { type: "pause", ms: 2000 },
@@ -977,6 +951,11 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       for (let idx = 0; idx < beats.length; idx++) {
         if (stopFlagRef.current) break;
         const beat = beats[idx];
+
+        if (idx >= beats.length / 2 && !halfListenedTrackedRef.current) {
+          halfListenedTrackedRef.current = true;
+          trackMeditationHalfListened();
+        }
 
         if (beat.type === "pause") {
           ensureFetching(nextSpeakIndex(idx + 1));
@@ -1268,7 +1247,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         minHeight: "100vh",
         background: "#F2F2F7",
         color: "#1C1C1E",
-        fontFamily: "'EB Garamond', Georgia, serif",
+        fontFamily: "'Inter', -apple-system, sans-serif",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -1277,7 +1256,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@500;600;700&display=swap');
         .cinzel { font-family: 'Cinzel', serif; }
         .glow-btn {
           background: #0D9488;
@@ -1317,8 +1296,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           color: #1C1C1E;
           padding: 1em 1.1em;
           border-radius: 12px;
-          font-family: 'EB Garamond', serif;
+          font-family: 'Inter', -apple-system, sans-serif;
           font-size: 1.15rem;
+          font-weight: 500;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .pair-block {
@@ -1341,7 +1321,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           text-transform:uppercase; cursor:pointer;
           box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
-        p, li { font-size: 1.12rem; }
+        p, li { font-size: 1.22rem; font-weight: 500; }
       `}</style>
 
       {emailInput && (
@@ -1727,7 +1707,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 onClick={() => {
                   setConsumingNewMeditationCredit(true);
                   setGoal("");
-                  setStage("goal");
+                  setStage("goal-do");
                 }}
                 style={{ width: "100%", marginTop: "1rem" }}
               >
@@ -1898,74 +1878,93 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               the alchemy — the identity transformation into the Magician, your
               fully embodied higher self.
             </p>
-            <button className="glow-btn" onClick={() => setStage("goal")}>
+            <button className="glow-btn" onClick={() => setStage("goal-do")}>
               Begin <ArrowRight size={16} style={{ verticalAlign: "middle", marginLeft: 6 }} />
             </button>
           </>
         )}
 
-        {stage === "goal" && (
+        {stage === "goal-do" && (
           <>
-            <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.4rem" }}>
+            <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.2rem" }}>
               Who Are You At Your Highest Potential?
             </h2>
-            <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.4rem", lineHeight: 1.6 }}>
-              Not a goal. Not an outcome. <strong style={{ color: "#1C1C1E" }}>Let your imagination run free.</strong>{" "}
-              <strong style={{ color: "#1C1C1E" }}>You are worthy, deserving, powerful, and capable of anything.</strong>
+            <p style={{ color: "#1C1C1E", fontSize: "1.05rem", fontWeight: 700, marginBottom: "1.8rem", lineHeight: 1.5 }}>
+              Tell us who you want to become. We'll describe your current path to it — and give you a deep affirmation to reprogram your identity into it.
             </p>
-            <p style={{ color: "#0D9488", fontSize: "0.95rem", marginBottom: "1.2rem", fontWeight: 700 }}>
-              Answer each one — the more specific you are, the more this reading can actually speak to you.
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.6rem", textAlign: "left" }}>
+              What do you do?
             </p>
-            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
-              What are you doing?
+            <p style={{ color: "#6E6E73", fontSize: "0.88rem", marginBottom: "0.8rem", textAlign: "left" }}>
+              Describe in as little or as much detail as you want.
             </p>
             <textarea
               className="field"
-              rows={2}
-              placeholder="Their work, craft, or role — what do they actually spend their time doing?"
+              rows={3}
+              placeholder="Their work, craft, or role..."
               value={goalWork}
               onChange={(e) => setGoalWork(e.target.value)}
-              style={{ marginBottom: "1rem" }}
+              style={{ marginBottom: "1.4rem" }}
             />
-            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
-              How do you carry yourself?
+            <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="glow-btn" disabled={!goalWork.trim()} onClick={() => setStage("goal-look")}>
+                Next
+              </button>
+              <button className="ghost-btn" onClick={() => setStage("hsv1")}>
+                I'm not sure yet
+              </button>
+            </div>
+          </>
+        )}
+
+        {stage === "goal-look" && (
+          <>
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.8rem", textAlign: "left" }}>
+              What do you look like?
             </p>
             <textarea
               className="field"
-              rows={2}
-              placeholder="Their presence, energy — how do people experience them when they walk in a room?"
-              value={goalPresence}
-              onChange={(e) => setGoalPresence(e.target.value)}
-              style={{ marginBottom: "1rem" }}
+              rows={3}
+              placeholder="Physical, outfits — how they present themselves..."
+              value={goalLook}
+              onChange={(e) => setGoalLook(e.target.value)}
+              style={{ marginBottom: "1.4rem" }}
             />
-            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
+            <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <button className="glow-btn" disabled={!goalLook.trim()} onClick={() => setStage("goal-think")}>
+                Next
+              </button>
+            </div>
+          </>
+        )}
+
+        {stage === "goal-think" && (
+          <>
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.8rem", textAlign: "left" }}>
               How do you think?
             </p>
             <textarea
               className="field"
-              rows={2}
-              placeholder="Their mindset, inner world — what's actually going on inside?"
+              rows={3}
+              placeholder="Their mindset, inner world..."
               value={goalMindset}
               onChange={(e) => setGoalMindset(e.target.value)}
-              style={{ marginBottom: "1.2rem" }}
+              style={{ marginBottom: "1.4rem" }}
             />
             <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
               <button
                 className="glow-btn"
-                disabled={!goalWork.trim() && !goalPresence.trim() && !goalMindset.trim()}
+                disabled={!goalMindset.trim()}
                 onClick={() => {
                   const combined = [
-                    goalWork.trim() && `What they're doing: ${goalWork.trim()}.`,
-                    goalPresence.trim() && `How they carry themselves: ${goalPresence.trim()}.`,
+                    goalWork.trim() && `What they do: ${goalWork.trim()}.`,
+                    goalLook.trim() && `What they look like: ${goalLook.trim()}.`,
                     goalMindset.trim() && `How they think: ${goalMindset.trim()}.`,
                   ].filter(Boolean).join(" ");
                   startDraw(combined);
                 }}
               >
                 Draw My Cards
-              </button>
-              <button className="ghost-btn" onClick={() => setStage("hsv1")}>
-                I'm not sure yet
               </button>
             </div>
           </>
@@ -2002,7 +2001,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             </h2>
             <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center" }}>
               <button className="glow-btn" onClick={() => setStage("hsv3")}>Yes</button>
-              <button className="ghost-btn" onClick={() => setStage("goal")}>Let me rethink it</button>
+              <button className="ghost-btn" onClick={() => setStage("goal-do")}>Let me rethink it</button>
             </div>
           </>
         )}
@@ -2025,23 +2024,13 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.6rem" }}>
               Your Cards Are Drawn
             </h2>
-            <div style={{ marginBottom: "1.8rem" }}>
-              {pairs.map((pair, stepIdx) => (
+            <div style={{ display: "flex", gap: "0.8rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "1.8rem" }}>
+              {pairs.map((c, i) => (
                 <div
-                  key={stepIdx}
-                  className="pair-block"
-                  style={{ background: "#FFFFFF", border: `1.5px solid ${STEPS[stepIdx].color}88` }}
+                  key={i}
+                  style={{ background: "#FFFFFF", border: "1.5px solid rgba(13,148,136,0.5)", borderRadius: 12, padding: "0.9rem 1.1rem", flex: "1 1 40%" }}
                 >
-                  <div className="cinzel" style={{ fontSize: "0.8rem", color: STEPS[stepIdx].color, letterSpacing: "0.1em", marginBottom: "0.7rem" }}>
-                    {STEPS[stepIdx].label}
-                  </div>
-                  <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
-                    {pair.map((c, i) => (
-                      <div key={i} style={{ flex: "1 1 45%" }}>
-                        <div className="cinzel" style={{ fontSize: "1.05rem" }}>{c.n}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="cinzel" style={{ fontSize: "1rem" }}>{c.n}</div>
                 </div>
               ))}
             </div>
@@ -2092,19 +2081,17 @@ Respond ONLY with a JSON object, no markdown, no preamble:
             {reading && !loading && (
               <>
                 <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>Your Reading</h2>
-                <div style={{ textAlign: "left", marginBottom: "1.6rem" }}>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[0].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[0].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.archetype}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[1].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[1].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.blocking}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[2].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[2].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75, marginBottom: "1.3rem" }}>{reading.pathForward}</p>
-                  <div className="cinzel" style={{ fontSize: "0.85rem", color: STEPS[3].color, letterSpacing: "0.08em", marginBottom: "0.4rem" }}>{STEPS[3].label}</div>
-                  <p style={{ color: "#1C1C1E", lineHeight: 1.75 }}>{reading.whoYouBecome}</p>
+                <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "1.4rem" }}>
+                  {pairs.map((c, i) => (
+                    <div key={i} style={{ background: "#F2F2F7", borderRadius: 8, padding: "0.5rem 0.8rem" }}>
+                      <div className="cinzel" style={{ fontSize: "0.82rem", color: "#0D9488" }}>{c.n}</div>
+                    </div>
+                  ))}
                 </div>
+                <p style={{ color: "#1C1C1E", lineHeight: 1.75, textAlign: "left", marginBottom: "1.6rem" }}>{reading}</p>
                 <button
                   className="glow-btn"
-                  onClick={() => setStage(isInstagramBrowser() ? "browser-check" : "oath")}
+                  onClick={() => (isInstagramBrowser() ? setStage("browser-check") : confirmOathAndSave())}
                 >
                   Receive Your Meditation
                 </button>
@@ -2129,30 +2116,6 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 You'll land right back here, ready to continue — that's it.
               </p>
             </div>
-          </>
-        )}
-
-        {stage === "oath" && (
-          <>
-            <h2 className="cinzel" style={{ fontSize: "1.4rem", marginBottom: "1.2rem" }}>
-              Speak This Aloud
-            </h2>
-            <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.3)", borderRadius: 14, padding: "1.6rem", marginBottom: "1.6rem" }}>
-              <p style={{ fontStyle: "italic", color: "#1C1C1E", fontSize: "1.2rem", lineHeight: 1.7, margin: 0 }}>
-                "{OATH}"
-              </p>
-            </div>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", justifyContent: "center", marginBottom: "1.6rem", cursor: "pointer" }}>
-              <input type="checkbox" checked={oathChecked} onChange={(e) => setOathChecked(e.target.checked)} style={{ width: 20, height: 20 }} />
-              <span style={{ color: "#6E6E73" }}>I have spoken this aloud</span>
-            </label>
-            <button
-              className="glow-btn"
-              disabled={!oathChecked}
-              onClick={confirmOathAndSave}
-            >
-              Confirm &amp; Receive
-            </button>
           </>
         )}
 
@@ -2227,10 +2190,10 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   {meditationParts.inductionPost}
                 </p>
                 <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
-                  {meditationParts.voidLight}
-                </p>
-                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
                   {meditationParts.visualization}
+                </p>
+                <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem", fontWeight: 700 }}>
+                  {meditationParts.affirmations}
                 </p>
                 <p style={{ color: "#1C1C1E", lineHeight: 1.85, whiteSpace: "pre-line", marginBottom: "1.2rem" }}>
                   <strong style={{ color: "#0D9488" }}>{meditationParts.anchor}</strong>
