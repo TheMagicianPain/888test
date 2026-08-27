@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>888 — The Magician's Path</title>
+<title>The Draw — The Magician's Path</title>
 
 <!-- PWA: home screen install -->
 <link rel="manifest" href="manifest.json">
@@ -228,6 +228,9 @@ Feel its warmth now — not just on your skin, but inside you. Inside every cell
 function TarotDraw() {
   const [stage, setStage] = useState("intro");
   const [goal, setGoal] = useState("");
+  const [goalWork, setGoalWork] = useState("");
+  const [goalPresence, setGoalPresence] = useState("");
+  const [goalMindset, setGoalMindset] = useState("");
   const [hsv, setHsv] = useState({ vision: "" });
   const [pairs, setPairs] = useState([]);
   const [reading, setReading] = useState(null);
@@ -250,6 +253,7 @@ function TarotDraw() {
   const [instantReadResponse, setInstantReadResponse] = useState(null);
   const [instantReadCards, setInstantReadCards] = useState(null);
   const [instantReadSuggestedFollowUp, setInstantReadSuggestedFollowUp] = useState(null);
+  const [instantReadLeveledUpBonus, setInstantReadLeveledUpBonus] = useState(null);
   const [instantReadIsCrisis, setInstantReadIsCrisis] = useState(false);
   const [instantReadPrayerOffer, setInstantReadPrayerOffer] = useState(null);
   const [prayerCast, setPrayerCast] = useState(null);
@@ -257,6 +261,10 @@ function TarotDraw() {
   const [instantReadLoading, setInstantReadLoading] = useState(false);
   const [instantReadError, setInstantReadError] = useState(null);
   const [credits, setCredits] = useState(3);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [streakPrizeMessage, setStreakPrizeMessage] = useState(null);
+  const [homeScreenBonusGranted, setHomeScreenBonusGranted] = useState(false);
+  const [notificationBonusGranted, setNotificationBonusGranted] = useState(false);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
   const [showProfileRecovery, setShowProfileRecovery] = useState(false);
@@ -275,8 +283,9 @@ function TarotDraw() {
   const toneStopTimeoutRef = useRef(null);
   const audioElRef = useRef(null);
   const speechAudioRef = useRef(null);
-  const speechUrlRef = useRef(null);
+  const voiceGainRef = useRef(null);
   const speechTimeoutRef = useRef(null);
+  const speechWaitResolveRef = useRef(null);
   const stopFlagRef = useRef(false);
   const firstClipPrefetchRef = useRef(null);
 
@@ -309,9 +318,21 @@ function TarotDraw() {
         const d = localStorage.getItem("magi_saved_reading");
         if (d) {
           const saved = decodeFromParam(d);
+          const built = buildMeditation(saved.visualization);
+          setGoal(saved.goal);
+          setReading(saved.reading);
+          setMeditation(built.fullMeditation);
+          setMeditationParts(built.parts);
           setEmailInput(saved.email || "");
           setNameInput(saved.name || "");
           refreshReadStatus(saved.email);
+
+          // First time opening from the installed icon — if notifications
+          // haven't been decided yet, prompt right away instead of making
+          // them hunt for an "Enable Notifications" button somewhere.
+          if ("Notification" in window && "PushManager" in window && Notification.permission === "default") {
+            setShowReminderTimePopup(true);
+          }
         } else {
           setShowProfileRecovery(true);
         }
@@ -322,6 +343,7 @@ function TarotDraw() {
     }
 
     let d = params.get("d");
+    const cameFromUrlLink = !!d; // capture this before the localStorage fallback below overwrites it
 
     // No 'd' in the URL — most likely because we just returned from a
     // redirect-based payment method (Amazon Pay / Klarna / Cash App Pay),
@@ -347,9 +369,22 @@ function TarotDraw() {
         setNameInput(saved.name || "");
         setSavedCode("saved");
         setUnlocked(true);
-        setStage("meditation");
-        startTone();
         refreshReadStatus(saved.email);
+
+        if (cameFromUrlLink) {
+          // A genuine saved link (e.g. the one emailed to them) — land on the
+          // hub so Instant Reads is right there, and prompt the home-screen
+          // instructions since this is their real chance to actually save it.
+          setStage("hub");
+          const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+          if (!isStandalone) {
+            setShowHomeScreenPopup(true);
+          }
+        } else {
+          // Returning from a payment redirect — resume exactly where they were.
+          setStage("meditation");
+          startTone();
+        }
       } catch (e) {
         console.error("Failed to restore saved meditation:", e);
         setVoiceError("This saved link couldn't be loaded. It may be corrupted or incomplete.");
@@ -404,6 +439,56 @@ function TarotDraw() {
       setNotifStatus(Notification.permission); // 'default' | 'granted' | 'denied'
     }
   }, []);
+
+  // Auto-claim the "added to home screen" bonus the first time we detect
+  // standalone mode for someone who hasn't been granted it yet. This is the
+  // real, verifiable signal — there's no browser event for "tapped Add to
+  // Home Screen" itself, only for actually running from the installed icon.
+  useEffect(() => {
+    if (!emailInput || homeScreenBonusGranted) return;
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (!isStandalone) return;
+
+    fetch(`${WORKER_URL}/claim-home-screen-bonus`, {
+      method: "POST",
+      body: JSON.stringify({ email: emailInput }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.alreadyGranted && data.credits !== undefined) {
+          setCredits(data.credits);
+        }
+        setHomeScreenBonusGranted(true);
+      })
+      .catch(() => {
+        // Not critical — worst case, it just tries again next time this effect runs.
+      });
+  }, [emailInput, homeScreenBonusGranted]);
+
+  // Track this as a real app-open the moment we know who this is — this is
+  // what actually builds/breaks their daily streak, independent of anything
+  // else on the page.
+  useEffect(() => {
+    if (!emailInput) return;
+    fetch(`${WORKER_URL}/track-app-open`, {
+      method: "POST",
+      body: JSON.stringify({ email: emailInput }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.currentStreak !== undefined) {
+          setCurrentStreak(data.currentStreak);
+        }
+        if (data.streakPrizeAwarded) {
+          setCredits(data.credits);
+          setStreakPrizeMessage(`🔥 ${data.currentStreak}-Day Streak! +3 bonus credits`);
+          setTimeout(() => setStreakPrizeMessage(null), 6000);
+        }
+      })
+      .catch(() => {
+        // Not critical — streak just won't update visually this specific load.
+      });
+  }, [emailInput]);
 
   function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -490,6 +575,16 @@ function TarotDraw() {
       .join("\n");
 
     const prompt = `You are writing in the voice of "The Magician's Path" — an esoteric identity-transformation brand built on tarot archetypes, chakra ascension through alchemy, and a framework of "Curses" (specific blocks like Identity Vacuum, Soul Bind, False Beliefs, Energy Leakage) that keep someone from full expression. Voice: direct, warm, confident, spiritually serious but not stiff.
+
+Write like an actual person talking, not like AI-generated content:
+- Vary sentence length hard. Some sentences should be short. Blunt, even. Not everything builds to a poetic crescendo.
+- Never use "not just X, it's Y" or "isn't about X, it's about Y" — banned constructions, both of them.
+- Don't force things into neat sets of three.
+- Cut generic profound-sounding words on sight: journey, unlock, unleash, embrace, navigate, tapestry, resonate, profound, transform, align, elevate.
+- Be specific and a little concrete/odd rather than vague and universal. A real detail beats a beautiful generality every time.
+- Don't resolve every thought into a tidy, balanced conclusion. Real people trail off, get blunt, contradict themselves slightly.
+- Use contractions always — you're, it's, don't. Never write in a stiff, grammatically "complete" way nobody actually talks in.
+- If a line could appear in a hundred different generic horoscopes, cut it and say the actual specific thing instead.
 
 The identity the person wants to become: "${identity}"
 
@@ -695,6 +790,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
   function wait(ms) {
     return new Promise((resolve) => {
+      speechWaitResolveRef.current = resolve;
       speechTimeoutRef.current = setTimeout(resolve, ms);
     });
   }
@@ -757,7 +853,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     const cached = await getCachedClip(cacheKey);
     if (cached) {
       console.log(`%c[cache HIT]%c no ElevenLabs call — served from IndexedDB (key ${cacheKey.slice(0, 8)}…)`, "color:#0D9488;font-weight:bold", "color:inherit");
-      return URL.createObjectURL(cached);
+      return cached;
     }
 
     console.log(`%c[cache MISS]%c calling ElevenLabs now (key ${cacheKey.slice(0, 8)}…) — will be cached for next time`, "color:#DC2645;font-weight:bold", "color:inherit");
@@ -772,17 +868,52 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
     const blob = await response.blob();
     setCachedClip(cacheKey, blob); // fire-and-forget, don't block playback on the write
-    return URL.createObjectURL(blob);
+    return blob;
   }
 
-  async function playClipUrl(url) {
+  // Plays a fetched voice clip through the SAME AudioContext already used
+  // for the healing tone. This is the actual fix for iOS blocking playback
+  // partway through a meditation: a plain <audio> element re-checks the
+  // autoplay policy on every single .play() call, and iOS Safari — especially
+  // in installed/standalone mode — blocks any of those calls that aren't
+  // directly inside a fresh tap. An AudioContext only needs to be unlocked
+  // ONCE by a real gesture; every subsequent buffer played through it,
+  // however later triggered, keeps working — exactly like the tone already does.
+  async function playClipUrl(blob) {
     const startedAt = Date.now();
-    const audio = new Audio(url);
-    speechAudioRef.current = audio;
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const ctx = audioCtxRef.current;
+    if (ctx.state === "suspended") {
+      try {
+        await ctx.resume();
+      } catch (e) {
+        // Still locked — same fallback as the tone: caller can retry after a real tap.
+      }
+    }
+
+    if (!voiceGainRef.current) {
+      voiceGainRef.current = ctx.createGain();
+      voiceGainRef.current.gain.value = 1;
+      voiceGainRef.current.connect(ctx.destination);
+    }
+
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    const source = ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(voiceGainRef.current);
+    speechAudioRef.current = source;
+
     setVoiceLoading(false);
-    await new Promise((resolve) => {
-      audio.onended = resolve;
-      audio.play();
+    await new Promise((resolve, reject) => {
+      source.onended = resolve;
+      try {
+        source.start();
+      } catch (err) {
+        reject(new Error("Playback was blocked by the browser. Tap the button again to continue."));
+      }
     });
     return Date.now() - startedAt;
   }
@@ -861,7 +992,10 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         ensureFetching(nextSpeakIndex(idx + 1));
 
         await playClipUrl(url);
-        URL.revokeObjectURL(url);
+      }
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+      if (!isStandalone) {
+        setShowHomeScreenPopup(true);
       }
       setStage("instant-reads");
     } catch (e) {
@@ -878,13 +1012,17 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = null;
     }
-    if (speechAudioRef.current) {
-      speechAudioRef.current.pause();
-      speechAudioRef.current = null;
+    if (speechWaitResolveRef.current) {
+      speechWaitResolveRef.current();
+      speechWaitResolveRef.current = null;
     }
-    if (speechUrlRef.current) {
-      URL.revokeObjectURL(speechUrlRef.current);
-      speechUrlRef.current = null;
+    if (speechAudioRef.current) {
+      try {
+        speechAudioRef.current.stop();
+      } catch (e) {
+        // Already ended or never started — nothing left to stop.
+      }
+      speechAudioRef.current = null;
     }
     setSpeaking(false);
     setVoiceLoading(false);
@@ -916,6 +1054,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setGoal(data.goal || "");
       setReading(data.reading || null);
       setCredits(data.credits || 0);
+      setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
+      setNotificationBonusGranted(!!data.notificationBonusGranted);
       if (data.reading) {
         setSavedCode("saved");
       }
@@ -942,6 +1082,12 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
       setShowProfileRecovery(false);
       setStage("hub");
+
+      // Same check as the other restore path — only prompt if notifications
+      // haven't been decided yet, so this asks once, not every time.
+      if ("Notification" in window && "PushManager" in window && Notification.permission === "default") {
+        setShowReminderTimePopup(true);
+      }
     } catch (e) {
       setRecoveryEmailError("Something went wrong. Check your connection and try again.");
     } finally {
@@ -959,6 +1105,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       if (!response.ok) return;
       const data = await response.json();
       setCredits(data.credits);
+      setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
+      setNotificationBonusGranted(!!data.notificationBonusGranted);
     } catch (e) {
       // Not critical — worst case, the count stays at its default until
       // their next actual read attempt corrects it anyway.
@@ -989,6 +1137,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     setInstantReadSuggestedFollowUp(null);
     setInstantReadIsCrisis(false);
     setInstantReadPrayerOffer(null);
+    setInstantReadLeveledUpBonus(null);
     setPrayerCast(null);
     try {
       const response = await fetch(`${WORKER_URL}/instant-read`, {
@@ -1009,6 +1158,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setInstantReadIsCrisis(!!data.isCrisis);
       setInstantReadSuggestedFollowUp(data.suggestedFollowUp || null);
       setInstantReadPrayerOffer(data.prayerOffer || null);
+      setInstantReadLeveledUpBonus(data.leveledUpBonus || null);
       setCredits(data.credits);
       setInstantReadQuestion("");
     } catch (e) {
@@ -1053,8 +1203,11 @@ Respond ONLY with a JSON object, no markdown, no preamble:
     }
     try {
       const saved = decodeFromParam(d);
+      const built = buildMeditation(saved.visualization);
       setGoal(saved.goal);
       setReading(saved.reading);
+      setMeditation(built.fullMeditation);
+      setMeditationParts(built.parts);
       setEmailInput(saved.email || "");
       setNameInput(saved.name || "");
       setStage("reading");
@@ -1257,7 +1410,65 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           >
             {credits} 💎
           </div>
+          {currentStreak > 0 && (
+            <div
+              style={{
+                position: "fixed",
+                top: "3.2rem",
+                right: "1rem",
+                background: "#FFFFFF",
+                border: "1px solid rgba(184,20,38,0.35)",
+                borderRadius: 20,
+                padding: "0.35em 0.9em",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "#b81426",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                zIndex: 20,
+              }}
+            >
+              🔥 {currentStreak}
+            </div>
+          )}
         </>
+      )}
+
+      {emailInput && !window.matchMedia("(display-mode: standalone)").matches && !homeScreenBonusGranted && (
+        <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
+          <span
+            onClick={() => setShowHomeScreenPopup(true)}
+            style={{ background: "#b81426", color: "#fff", padding: "0.4em 1.1em", borderRadius: 20, fontSize: "0.78rem", fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer", display: "inline-block" }}
+          >
+            💎 +3 credits — Add to Home Screen
+          </span>
+        </div>
+      )}
+      {emailInput && (window.matchMedia("(display-mode: standalone)").matches || homeScreenBonusGranted) && notifStatus !== "granted" && !notificationBonusGranted && (
+        <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
+          <span
+            onClick={() => setShowReminderTimePopup(true)}
+            style={{ background: "#b81426", color: "#fff", padding: "0.4em 1.1em", borderRadius: 20, fontSize: "0.78rem", fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer", display: "inline-block" }}
+          >
+            💎 +3 credits — Enable Notifications
+          </span>
+        </div>
+      )}
+
+      {streakPrizeMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: "6.5rem",
+            left: "6vw",
+            right: "6vw",
+            zIndex: 50,
+            textAlign: "center",
+          }}
+        >
+          <div style={{ background: "#b81426", color: "#fff", padding: "0.9rem 1.2rem", borderRadius: 14, fontWeight: 700, fontSize: "0.95rem", boxShadow: "0 4px 16px rgba(0,0,0,0.25)" }}>
+            {streakPrizeMessage}
+          </div>
+        </div>
       )}
 
       {showTonePopup && (
@@ -1356,9 +1567,16 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 setShowReminderTimePopup(false);
                 enableNotifications();
               }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", marginBottom: "0.8rem" }}
             >
               Save Time & Enable Notifications
+            </button>
+            <button
+              className="ghost-btn"
+              onClick={() => setShowReminderTimePopup(false)}
+              style={{ width: "100%" }}
+            >
+              Maybe Later
             </button>
           </div>
         </div>
@@ -1403,11 +1621,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
                   <strong>1.</strong> Tap the Share icon (⬆️ square) at the bottom of your screen
                 </p>
-                <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.5rem", lineHeight: 1.6 }}>
-                  <strong>2.</strong> Scroll down and tap "Add to Home Screen"
-                </p>
                 <p style={{ color: "#1C1C1E", fontSize: "0.95rem", margin: "0 0 0.9rem", lineHeight: 1.6 }}>
-                  <strong>3.</strong> Tap "Add" in the top right
+                  <strong>2.</strong> Scroll down and tap "Add to Home Screen"
                 </p>
                 <img src="ios-add-home.png" alt="How to add to home screen on iPhone" style={{ width: "100%", borderRadius: 10, marginBottom: "1.1rem" }} />
               </>
@@ -1520,7 +1735,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               </button>
             ) : (
               <a
-                href={`https://buy.stripe.com/test_28E9AT1eO4kU51x7pedAk01?prefilled_email=${encodeURIComponent(emailInput)}`}
+                href={`https://buy.stripe.com/fZueVdaPo3gQ3XtaBqdAk04?prefilled_email=${encodeURIComponent(emailInput)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ghost-btn"
@@ -1547,6 +1762,14 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               {instantReadIsCrisis && instantReadResponse && (
                 <div style={{ background: "#FFFFFF", border: "2px solid rgba(13,148,136,0.4)", borderRadius: 10, padding: "1.2rem", marginBottom: "1rem", textAlign: "left" }}>
                   <p style={{ color: "#1C1C1E", lineHeight: 1.7, margin: 0 }}>{instantReadResponse}</p>
+                </div>
+              )}
+
+              {instantReadLeveledUpBonus && (
+                <div style={{ background: "#b81426", borderRadius: 10, padding: "0.9rem", marginBottom: "1rem", textAlign: "center" }}>
+                  <p style={{ color: "#fff", fontWeight: 700, fontSize: "1rem", margin: 0 }}>
+                    🎉 Level {instantReadLeveledUpBonus}! +3 bonus credits
+                  </p>
                 </div>
               )}
 
@@ -1624,7 +1847,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                     You're out of credits. Refill to keep going.
                   </p>
                   <a
-                    href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
+                    href={`https://buy.stripe.com/fZueVdaPo3gQ3XtaBqdAk04?prefilled_email=${encodeURIComponent(emailInput)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="glow-btn"
@@ -1690,19 +1913,55 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               Not a goal. Not an outcome. <strong style={{ color: "#1C1C1E" }}>Let your imagination run free.</strong>{" "}
               <strong style={{ color: "#1C1C1E" }}>You are worthy, deserving, powerful, and capable of anything.</strong>
             </p>
-            <p style={{ color: "#0D9488", fontSize: "0.95rem", marginBottom: "0.8rem", fontWeight: 700 }}>
-              Include as much detail as possible — the more specific you are, the more this reading can actually speak to you.
+            <p style={{ color: "#0D9488", fontSize: "0.95rem", marginBottom: "1.2rem", fontWeight: 700 }}>
+              Answer each one — the more specific you are, the more this reading can actually speak to you.
+            </p>
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
+              What are you doing?
             </p>
             <textarea
               className="field"
-              rows={4}
-              placeholder="Describe that identity in as much detail as possible — how they think, carry themselves, speak, move through the world..."
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
+              rows={2}
+              placeholder="Their work, craft, or role — what do they actually spend their time doing?"
+              value={goalWork}
+              onChange={(e) => setGoalWork(e.target.value)}
+              style={{ marginBottom: "1rem" }}
+            />
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
+              How do you carry yourself?
+            </p>
+            <textarea
+              className="field"
+              rows={2}
+              placeholder="Their presence, energy — how do people experience them when they walk in a room?"
+              value={goalPresence}
+              onChange={(e) => setGoalPresence(e.target.value)}
+              style={{ marginBottom: "1rem" }}
+            />
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.5rem", textAlign: "left" }}>
+              How do you think?
+            </p>
+            <textarea
+              className="field"
+              rows={2}
+              placeholder="Their mindset, inner world — what's actually going on inside?"
+              value={goalMindset}
+              onChange={(e) => setGoalMindset(e.target.value)}
               style={{ marginBottom: "1.2rem" }}
             />
             <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="glow-btn" disabled={!goal.trim()} onClick={() => startDraw(goal)}>
+              <button
+                className="glow-btn"
+                disabled={!goalWork.trim() && !goalPresence.trim() && !goalMindset.trim()}
+                onClick={() => {
+                  const combined = [
+                    goalWork.trim() && `What they're doing: ${goalWork.trim()}.`,
+                    goalPresence.trim() && `How they carry themselves: ${goalPresence.trim()}.`,
+                    goalMindset.trim() && `How they think: ${goalMindset.trim()}.`,
+                  ].filter(Boolean).join(" ");
+                  startDraw(combined);
+                }}
+              >
                 Draw My Cards
               </button>
               <button className="ghost-btn" onClick={() => setStage("hsv1")}>
@@ -2033,6 +2292,14 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               </div>
             )}
 
+            {instantReadLeveledUpBonus && (
+              <div style={{ background: "#b81426", borderRadius: 10, padding: "0.9rem", marginBottom: "1rem", textAlign: "center" }}>
+                <p style={{ color: "#fff", fontWeight: 700, fontSize: "1rem", margin: 0 }}>
+                  🎉 Level {instantReadLeveledUpBonus}! +3 bonus credits
+                </p>
+              </div>
+            )}
+
             {!instantReadIsCrisis && instantReadResponse && (
               <div style={{ background: "#FFFFFF", border: "1px solid rgba(13,148,136,0.25)", borderRadius: 10, padding: "1rem", marginBottom: "1rem", textAlign: "left" }}>
                 {instantReadCards && (
@@ -2107,7 +2374,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   You're out of credits. Refill to keep going.
                 </p>
                 <a
-                  href={`https://buy.stripe.com/test_bJeaEX1eO8BactZ8tidAk02?prefilled_email=${encodeURIComponent(emailInput)}`}
+                  href={`https://buy.stripe.com/fZueVdaPo3gQ3XtaBqdAk04?prefilled_email=${encodeURIComponent(emailInput)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="glow-btn"
