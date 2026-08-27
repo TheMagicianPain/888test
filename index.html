@@ -42,6 +42,7 @@ function Icon({ children, size = 16, style, ...rest }) {
   );
 }
 const ArrowRight = (props) => <Icon {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Icon>;
+const Check = (props) => <Icon {...props}><polyline points="20 6 9 17 4 12"/></Icon>;
 const Sparkles = (props) => <Icon {...props}><path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z"/></Icon>;
 const Loader2 = (props) => <Icon {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Icon>;
 const Play = (props) => <Icon {...props}><polygon points="5 3 19 12 5 21 5 3"/></Icon>;
@@ -214,6 +215,7 @@ function TarotDraw() {
   const [goalWork, setGoalWork] = useState("");
   const [goalLook, setGoalLook] = useState("");
   const [goalMindset, setGoalMindset] = useState("");
+  const [showCheckmark, setShowCheckmark] = useState(false);
   const [hsv, setHsv] = useState({ vision: "" });
   const [pairs, setPairs] = useState([]);
   const [reading, setReading] = useState(null);
@@ -521,6 +523,14 @@ function TarotDraw() {
     }
   }
 
+  function advanceGoalQuestion(nextStage) {
+    setShowCheckmark(true);
+    setTimeout(() => {
+      setShowCheckmark(false);
+      setStage(nextStage);
+    }, 650);
+  }
+
   function startDraw(finalIdentity) {
     setGoal(finalIdentity);
     const drawnCards = drawFrom([...MAJOR, ...MINOR], 4);
@@ -570,7 +580,7 @@ Write ONE single, succinct, cohesive reading — not separate labeled sections. 
 2. Keep a push-and-pull rhythm throughout: affirm, then challenge, then affirm again — never flat, never one-note.
 3. Still walk through their current archetype, what's blocking them, and their path toward the future identity — woven together as one flowing piece, not labeled or separated.
 4. Close by using their own likely pain point to build real desire for the deep affirmation/meditation waiting for them — make it feel necessary, not optional.
-Keep it tight — this should read fast, not like an essay. Roughly 130-170 words total.
+Keep it tight — this should read fast, not like an essay. Roughly 90-120 words total.
 
 Respond ONLY with a JSON object, no markdown, no preamble:
 {
@@ -1434,6 +1444,36 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         </div>
       )}
 
+      {showCheckmark && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 200,
+          }}
+        >
+          <div
+            style={{
+              background: "#0D9488",
+              borderRadius: "50%",
+              width: 90,
+              height: 90,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              animation: "checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}
+          >
+            <Check size={46} style={{ color: "#fff" }} />
+          </div>
+          <style>{`@keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`}</style>
+        </div>
+      )}
+
       {streakPrizeMessage && (
         <div
           style={{
@@ -1869,14 +1909,10 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               The Draw
             </h1>
             <p style={{ color: "#6E6E73", fontStyle: "italic", marginBottom: "1.2rem", lineHeight: 1.6 }}>
-              We're going to do a tarot read together, gently, to help you see your
-              true identity clearly — and what's been quietly standing between you
-              and it.
+              We're going to do a tarot read to show you your true identity — and what's been standing between you and it.
             </p>
             <p style={{ color: "#6E6E73", marginBottom: "2rem", lineHeight: 1.6 }}>
-              Afterward, you'll receive a free guided meditation to lovingly begin
-              the alchemy — the identity transformation into the Magician, your
-              fully embodied higher self.
+              Afterward, you'll get a free guided meditation to begin your identity transformation into your highest self.
             </p>
             <button className="glow-btn" onClick={() => setStage("goal-do")}>
               Begin <ArrowRight size={16} style={{ verticalAlign: "middle", marginLeft: 6 }} />
@@ -1886,6 +1922,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "goal-do" && (
           <>
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.6rem" }}>
+              Just 3 quick questions — 1 of 3
+            </p>
             <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.2rem" }}>
               Who Are You At Your Highest Potential?
             </h2>
@@ -1907,7 +1946,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               style={{ marginBottom: "1.4rem" }}
             />
             <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="glow-btn" disabled={!goalWork.trim()} onClick={() => setStage("goal-look")}>
+              <button className="glow-btn" disabled={!goalWork.trim()} onClick={() => advanceGoalQuestion("goal-look")}>
                 Next
               </button>
               <button className="ghost-btn" onClick={() => setStage("hsv1")}>
@@ -1919,6 +1958,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "goal-look" && (
           <>
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.6rem" }}>
+              2 of 3
+            </p>
             <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.8rem", textAlign: "left" }}>
               What do you look like?
             </p>
@@ -1931,7 +1973,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               style={{ marginBottom: "1.4rem" }}
             />
             <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="glow-btn" disabled={!goalLook.trim()} onClick={() => setStage("goal-think")}>
+              <button className="glow-btn" disabled={!goalLook.trim()} onClick={() => advanceGoalQuestion("goal-think")}>
                 Next
               </button>
             </div>
@@ -1940,6 +1982,9 @@ Respond ONLY with a JSON object, no markdown, no preamble:
 
         {stage === "goal-think" && (
           <>
+            <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.6rem" }}>
+              3 of 3
+            </p>
             <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.8rem", textAlign: "left" }}>
               How do you think?
             </p>
@@ -1961,7 +2006,11 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                     goalLook.trim() && `What they look like: ${goalLook.trim()}.`,
                     goalMindset.trim() && `How they think: ${goalMindset.trim()}.`,
                   ].filter(Boolean).join(" ");
-                  startDraw(combined);
+                  setShowCheckmark(true);
+                  setTimeout(() => {
+                    setShowCheckmark(false);
+                    startDraw(combined);
+                  }, 650);
                 }}
               >
                 Draw My Cards
