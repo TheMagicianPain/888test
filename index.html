@@ -249,6 +249,7 @@ function TarotDraw() {
   const [streakPrizeMessage, setStreakPrizeMessage] = useState(null);
   const [homeScreenBonusGranted, setHomeScreenBonusGranted] = useState(false);
   const [notificationBonusGranted, setNotificationBonusGranted] = useState(false);
+  const [hasDoneFirstInstantRead, setHasDoneFirstInstantRead] = useState(false);
   const [consumingNewMeditationCredit, setConsumingNewMeditationCredit] = useState(false);
   const NEW_MEDITATION_COST = 12; // same 12-credit price as a reads pack, spent from the same pool
   const [showProfileRecovery, setShowProfileRecovery] = useState(false);
@@ -1046,6 +1047,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setCredits(data.credits || 0);
       setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
       setNotificationBonusGranted(!!data.notificationBonusGranted);
+      setHasDoneFirstInstantRead(!!data.hasDoneFirstInstantRead);
       if (data.reading) {
         setSavedCode("saved");
       }
@@ -1097,6 +1099,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setCredits(data.credits);
       setHomeScreenBonusGranted(!!data.homeScreenBonusGranted);
       setNotificationBonusGranted(!!data.notificationBonusGranted);
+      setHasDoneFirstInstantRead(!!data.hasDoneFirstInstantRead);
     } catch (e) {
       // Not critical — worst case, the count stays at its default until
       // their next actual read attempt corrects it anyway.
@@ -1148,6 +1151,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
       setInstantReadIsCrisis(!!data.isCrisis);
       setInstantReadSuggestedFollowUp(data.suggestedFollowUp || null);
       setInstantReadPrayerOffer(data.prayerOffer || null);
+      setHasDoneFirstInstantRead(true);
       setInstantReadLeveledUpBonus(data.leveledUpBonus || null);
       setCredits(data.credits);
       setInstantReadQuestion("");
@@ -1385,7 +1389,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           </div>
         </>
       )}
-      {emailInput && savedCode && (
+      {emailInput && unlocked && (
         <>
           <div
             style={{
@@ -1428,7 +1432,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         </>
       )}
 
-      {emailInput && savedCode && !window.matchMedia("(display-mode: standalone)").matches && !homeScreenBonusGranted && (
+      {emailInput && savedCode && hasDoneFirstInstantRead && !window.matchMedia("(display-mode: standalone)").matches && !homeScreenBonusGranted && (
         <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
           <span
             onClick={() => setShowHomeScreenPopup(true)}
@@ -1438,7 +1442,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           </span>
         </div>
       )}
-      {emailInput && savedCode && (window.matchMedia("(display-mode: standalone)").matches || homeScreenBonusGranted) && notifStatus !== "granted" && !notificationBonusGranted && (
+      {emailInput && savedCode && hasDoneFirstInstantRead && (window.matchMedia("(display-mode: standalone)").matches || homeScreenBonusGranted) && notifStatus !== "granted" && !notificationBonusGranted && (
         <div style={{ position: "fixed", top: "4.3rem", left: 0, right: 0, textAlign: "center", zIndex: 15 }}>
           <span
             onClick={() => setShowReminderTimePopup(true)}
