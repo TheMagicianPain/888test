@@ -528,7 +528,7 @@ function TarotDraw() {
     setTimeout(() => {
       setShowCheckmark(false);
       setStage(nextStage);
-    }, 650);
+    }, 950);
   }
 
   function startDraw(finalIdentity) {
@@ -1449,28 +1449,44 @@ Respond ONLY with a JSON object, no markdown, no preamble:
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.35)",
+            background: "rgba(0,0,0,0.4)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 200,
           }}
         >
-          <div
-            style={{
-              background: "#0D9488",
-              borderRadius: "50%",
-              width: 90,
-              height: 90,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              animation: "checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
-            }}
-          >
-            <Check size={46} style={{ color: "#fff" }} />
+          <div style={{ position: "relative", width: 100, height: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              style={{
+                position: "absolute",
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                border: "2px solid #0D9488",
+                animation: "ringImpact 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
+            <div
+              style={{
+                background: "#0D9488",
+                borderRadius: "50%",
+                width: 90,
+                height: 90,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                animation: "checkWeight 0.75s cubic-bezier(0.22, 1, 0.36, 1)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+              }}
+            >
+              <Check size={46} style={{ color: "#fff" }} />
+            </div>
           </div>
-          <style>{`@keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`}</style>
+          <style>{`
+            @keyframes checkWeight { 0% { transform: scale(0.4); opacity: 0; } 55% { transform: scale(1.12); opacity: 1; } 78% { transform: scale(0.94); } 100% { transform: scale(1); opacity: 1; } }
+            @keyframes ringImpact { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
+          `}</style>
         </div>
       )}
 
@@ -1923,19 +1939,16 @@ Respond ONLY with a JSON object, no markdown, no preamble:
         {stage === "goal-do" && (
           <>
             <p style={{ color: "#0D9488", fontWeight: 700, fontSize: "0.95rem", marginBottom: "0.6rem" }}>
-              Just 3 quick questions — 1 of 3
+              3 Questions — 1 of 3
             </p>
-            <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.2rem" }}>
-              Who Are You At Your Highest Potential?
+            <h2 className="cinzel" style={{ fontSize: "1.5rem", marginBottom: "1.4rem" }}>
+              At Your Highest Potential
             </h2>
-            <p style={{ color: "#1C1C1E", fontSize: "1.05rem", fontWeight: 700, marginBottom: "1.8rem", lineHeight: 1.5 }}>
-              Tell us who you want to become. We'll describe your current path to it — and give you a deep affirmation to reprogram your identity into it.
-            </p>
-            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.6rem", textAlign: "left" }}>
+            <p style={{ color: "#1C1C1E", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.4rem", textAlign: "left" }}>
               What do you do?
             </p>
-            <p style={{ color: "#6E6E73", fontSize: "0.88rem", marginBottom: "0.8rem", textAlign: "left" }}>
-              Describe in as little or as much detail as you want.
+            <p style={{ color: "#6E6E73", fontSize: "0.85rem", marginBottom: "0.8rem", textAlign: "left" }}>
+              The more detail, the better.
             </p>
             <textarea
               className="field"
@@ -2010,7 +2023,7 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                   setTimeout(() => {
                     setShowCheckmark(false);
                     startDraw(combined);
-                  }, 650);
+                  }, 950);
                 }}
               >
                 Draw My Cards
