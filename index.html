@@ -1890,8 +1890,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                   <button
                     className="glow-btn"
-                    onClick={() => requestInstantRead(prayerCast.suggestedFollowUp)}
-                    disabled={instantReadLoading || credits < 1}
+                    onClick={() => (credits < 1 ? setShowBuyCreditsPopup(true) : requestInstantRead(prayerCast.suggestedFollowUp))}
+                    disabled={instantReadLoading}
                     style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
                   >
                     Yes — {prayerCast.suggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
@@ -1918,8 +1918,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
                 <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                   <button
                     className="glow-btn"
-                    onClick={() => requestInstantRead(instantReadSuggestedFollowUp)}
-                    disabled={instantReadLoading || credits < 1}
+                    onClick={() => (credits < 1 ? setShowBuyCreditsPopup(true) : requestInstantRead(instantReadSuggestedFollowUp))}
+                    disabled={instantReadLoading}
                     style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
                   >
                     Yes — {instantReadSuggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
@@ -2398,8 +2398,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                 <button
                   className="glow-btn"
-                  onClick={() => requestInstantRead(prayerCast.suggestedFollowUp)}
-                  disabled={instantReadLoading || credits < 1}
+                  onClick={() => (credits < 1 ? setShowBuyCreditsPopup(true) : requestInstantRead(prayerCast.suggestedFollowUp))}
+                  disabled={instantReadLoading}
                   style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
                 >
                   Yes — {prayerCast.suggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
@@ -2426,8 +2426,8 @@ Respond ONLY with a JSON object, no markdown, no preamble:
               <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
                 <button
                   className="glow-btn"
-                  onClick={() => requestInstantRead(instantReadSuggestedFollowUp)}
-                  disabled={instantReadLoading || credits < 1}
+                  onClick={() => (credits < 1 ? setShowBuyCreditsPopup(true) : requestInstantRead(instantReadSuggestedFollowUp))}
+                  disabled={instantReadLoading}
                   style={{ width: "100%", marginBottom: "0.6rem", background: "#b81426" }}
                 >
                   Yes — {instantReadSuggestedFollowUp} <span style={{ opacity: 0.7, fontWeight: 400, fontSize: "0.85em" }}>1💎</span>
