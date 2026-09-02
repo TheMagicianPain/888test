@@ -217,6 +217,13 @@ function renderChoices(id,items,multi=false){
 }
 function setup(){
  renderChoices("obstacles",obstacles);
+ document.querySelectorAll("#obstacles .choice").forEach((button,i)=>{
+   button.onclick=()=>{
+     document.querySelectorAll("#obstacles .choice").forEach(b=>b.classList.remove("selected"));
+     button.classList.add("selected");
+     A.obstacle=obstacles[i][0];
+   };
+ });
  renderChoices("energy",energies.map(x=>[x,x]),true);
  renderChoices("response",responses.map(x=>[x,x]));
  renderChoices("cost",costs.map(x=>[x,x]));
