@@ -227,6 +227,17 @@ function renderChoices(id,items,multi=false){
        el.querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));
        b.classList.add("selected");
        A[id]=value;
+       // Enable the step-specific Continue button once a choice is made.
+       // These buttons start disabled intentionally so users cannot advance
+       // without answering the question.
+       if(id==="seriousness"){
+         const btn=document.getElementById("seriousBtn");
+         if(btn) btn.disabled=false;
+       }
+       if(id==="income"){
+         const btn=document.getElementById("incomeBtn");
+         if(btn) btn.disabled=false;
+       }
      }
    };
    el.appendChild(b);
