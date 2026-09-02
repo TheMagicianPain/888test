@@ -28,7 +28,7 @@ textarea:focus{border-color:#aaa}.choices{display:grid;gap:11px;max-width:680px;
 .btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
 .btn:disabled{opacity:.3;cursor:not-allowed}
 .center{text-align:center}.loading{padding:80px 0}.spinner{width:38px;height:38px;border:2px solid #333;border-top-color:var(--text);border-radius:50%;animation:spin 1s linear infinite;margin:25px auto}@keyframes spin{to{transform:rotate(360deg)}}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:30px 0}.card{background:linear-gradient(145deg,#19191f,#0e0e13);border:1px solid #383842;border-radius:10px;padding:13px 8px;text-align:center;min-height:145px;display:flex;flex-direction:column;justify-content:center}.card .roman{font:11px Arial;color:#888}.card .symbol{font-size:30px;margin:10px 0}.card .name{font-size:14px}.reading{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:25px;font:16px/1.75 Arial,sans-serif}.reading h3{font-family:Georgia,serif;font-size:21px;font-weight:400;margin:22px 0 7px}.reading h3:first-child{margin-top:0}.twist{margin-top:22px;border-left:2px solid #f4efe5;padding:5px 0 5px 18px;font:18px/1.6 Georgia,serif}.price{font-size:32px;margin:8px 0}.recommend{background:#17171e;border:1px solid #454550;border-radius:14px;padding:24px;margin-top:25px;text-align:center}.recommend p{font:15px/1.6 Arial;color:var(--muted)}.tiny{font:11px/1.5 Arial;color:#777;text-align:center;margin-top:18px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:30px 0}.card{background:linear-gradient(145deg,#19191f,#0e0e13);border:1px solid #383842;border-radius:12px;padding:10px 8px 13px;text-align:center;min-width:0;overflow:hidden}.card .position{font:10px Arial,sans-serif;letter-spacing:1.8px;color:#888;margin:2px 0 9px;text-transform:uppercase}.card img{display:block;width:100%;aspect-ratio:2/3.42;object-fit:cover;border-radius:7px;border:1px solid #2e2e36;background:#08080b}.card .name{font:15px Georgia,serif;margin-top:10px;line-height:1.2}.card .roman{font:10px Arial,sans-serif;color:#888;margin-top:5px}.reading{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:25px;font:16px/1.75 Arial,sans-serif}.reading h3{font-family:Georgia,serif;font-size:21px;font-weight:400;margin:22px 0 7px}.reading h3:first-child{margin-top:0}.twist{margin-top:22px;border-left:2px solid #f4efe5;padding:5px 0 5px 18px;font:18px/1.6 Georgia,serif}.price{font-size:32px;margin:8px 0}.recommend{background:#17171e;border:1px solid #454550;border-radius:14px;padding:24px;margin-top:25px;text-align:center}.recommend p{font:15px/1.6 Arial;color:var(--muted)}.tiny{font:11px/1.5 Arial;color:#777;text-align:center;margin-top:18px}.source-note{font:11px/1.5 Arial,sans-serif;color:#666;text-align:center;margin-top:14px}.source-note a{color:#888}
 @media(max-width:600px){.cards{grid-template-columns:repeat(2,1fr)}.scale button{height:45px}.wrap{padding-left:16px;padding-right:16px}}
 </style>
 </head>
@@ -165,11 +165,28 @@ const seriousness=[["curious","I'm curious — mostly wanted to understand mysel
 const incomes=[["low","Under $25,000"],["25","$25,000–$49,999"],["50","$50,000–$74,999"],["75","$75,000–$99,999"],["100","$100,000–$149,999"],["150","$150,000–$249,999"],["250","$250,000+"]];
 
 const arcana=[
-["0","The Fool","○"],["I","The Magician","✦"],["II","The High Priestess","☾"],["III","The Empress","♕"],["IV","The Emperor","♜"],
-["V","The Hierophant","✧"],["VI","The Lovers","♡"],["VII","The Chariot","▲"],["VIII","Strength","∞"],["IX","The Hermit","☿"],
-["X","Wheel of Fortune","◉"],["XI","Justice","⚖"],["XII","The Hanged Man","◇"],["XIII","Death","☥"],["XIV","Temperance","△"],
-["XV","The Devil","♢"],["XVI","The Tower","⚡"],["XVII","The Star","✧"],["XVIII","The Moon","☽"],["XIX","The Sun","☉"],
-["XX","Judgement","◈"],["XXI","The World","◎"]
+  ["0","The Fool","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/00_Fool.jpg"],
+  ["I","The Magician","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/01_Magician.jpg"],
+  ["II","The High Priestess","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/02_High_Priestess.jpg"],
+  ["III","The Empress","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/03_Empress.jpg"],
+  ["IV","The Emperor","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/04_Emperor.jpg"],
+  ["V","The Hierophant","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/05_Hierophant.jpg"],
+  ["VI","The Lovers","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/06_Lovers.jpg"],
+  ["VII","The Chariot","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/07_Chariot.jpg"],
+  ["VIII","Strength","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/08_Strength.jpg"],
+  ["IX","The Hermit","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/09_Hermit.jpg"],
+  ["X","Wheel of Fortune","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/10_Wheel_of_Fortune.jpg"],
+  ["XI","Justice","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/11_Justice.jpg"],
+  ["XII","The Hanged Man","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/12_Hanged_Man.jpg"],
+  ["XIII","Death","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/13_Death.jpg"],
+  ["XIV","Temperance","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/14_Temperance.jpg"],
+  ["XV","The Devil","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/15_Devil.jpg"],
+  ["XVI","The Tower","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/16_Tower.jpg"],
+  ["XVII","The Star","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/17_Star.jpg"],
+  ["XVIII","The Moon","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/18_Moon.jpg"],
+  ["XIX","The Sun","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/19_Sun.jpg"],
+  ["XX","Judgement","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/20_Judgement.jpg"],
+  ["XXI","The World","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/21_World.jpg"]
 ];
 
 const meanings={
@@ -323,7 +340,9 @@ function buildReading(){
  const cards=randomCards(),names=["THE SELF","THE MIRROR","THE SHADOW","THE BINDING","THE PATH"];
  document.getElementById("readingTitle").textContent=A.identity;
  const box=document.getElementById("cards");box.innerHTML="";
- cards.forEach((c,i)=>{box.innerHTML+=`<div class="card"><div class="roman">${names[i]}</div><div class="symbol">${c[2]}</div><div class="name">${c[1]}</div></div>`});
+ cards.forEach((c,i)=>{box.innerHTML+=`<div class="card"><div class="position">${names[i]}</div><img src="${c[2]}" alt="${c[1]} — Rider-Waite-Smith Major Arcana" loading="eager" referrerpolicy="no-referrer"><div class="name">${c[1]}</div><div class="roman">${c[0]}</div></div>`});
+ document.querySelectorAll(".source-note").forEach(el=>el.remove());
+ box.insertAdjacentHTML("afterend",'<div class="source-note">Card artwork: original Rider-Waite-Smith Major Arcana, illustrated by Pamela Colman Smith; public-domain source. <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck" target="_blank" rel="noopener">View source</a></div>');
  const shadow=cards[2][1], path=cards[4][1];
  const gap=A.gap<=3?"You are already close to this identity. The work is less about discovering a new self and more about consistently embodying what you already recognize.":A.gap<=6?"You can see the person you're becoming, but there is still a meaningful distance between recognition and embodiment.":"The distance is significant. That does not mean the identity is unavailable; it means the transition will require deliberate practice.";
  const p=A.pattern;
