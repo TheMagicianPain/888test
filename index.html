@@ -216,14 +216,7 @@ function renderChoices(id,items,multi=false){
  });
 }
 function setup(){
-renderChoices("obstacles",obstacles.map(x => [x[0], x[1]]));
-document.querySelectorAll("#obstacles .choice").forEach((button, i) => {
-  button.onclick = () => {
-    document.querySelectorAll("#obstacles .choice").forEach(b => b.classList.remove("selected"));
-    button.classList.add("selected");
-    A.obstacle = obstacles[i][0];
-  };
-});
+ renderChoices("obstacles",obstacles);
  renderChoices("energy",energies.map(x=>[x,x]),true);
  renderChoices("response",responses.map(x=>[x,x]));
  renderChoices("cost",costs.map(x=>[x,x]));
@@ -308,9 +301,9 @@ function renderAdaptiveChoices(items){
  items.forEach(x=>{let b=document.createElement("button");b.className="choice";b.textContent=x;b.onclick=()=>{area.querySelectorAll("button").forEach(y=>y.classList.remove("selected"));b.classList.add("selected");A.adaptive=x};area.firstChild.appendChild(b)});
 }
 function draw(){
+ const adaptiveText=document.getElementById("adaptiveText");
+ if(adaptiveText) A.adaptive=adaptiveText.value.trim();
  if(!A.adaptive)return alert("Answer the deeper question.");
- if(document.getElementById("adaptiveText"))A.adaptive=document.getElementById("adaptiveText").value.trim();
- if(!A.adaptive)return alert("Give me an answer.");
  step=8;screen(8);
  setTimeout(()=>{buildReading();step=9;screen(9)},1400);
 }
