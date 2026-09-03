@@ -43,7 +43,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px rgba(13,148,136,.
 </head>
 <body>
 <button id="toneToggle" class="tone-toggle" type="button" aria-pressed="true">432 Hz · On</button>
-<audio id="ambientTone" loop preload="auto"><source src="https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3" type="audio/mpeg"></audio>
+<audio id="ambientTone" loop preload="auto" autoplay playsinline><source src="https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3" type="audio/mpeg"></audio>
 <div class="wrap">
   <div class="logo">THE DRAW</div>
   <div class="progress"><div class="bar" id="bar"></div></div>
@@ -318,6 +318,23 @@ function back(){if(step>1){step--;screen(step)}}
 
 function determinePattern(){
  const o=A.obstacle;
+ // Diagnose the relationship with desire/energy across the whole questionnaire.
+ let sexual=0;
+ if(A.energy.includes("Sexuality / desire")) sexual+=4;
+ if(A.response==="Pursue sexual desire") sexual+=4;
+ if(A.response==="Suppress it") sexual+=3;
+ if(A.response==="Seek stimulation") sexual+=2;
+ if(A.response==="It becomes scattered") sexual+=2;
+ if(A.energy.includes("Entertainment / stimulation")) sexual+=1;
+ if(A.energy.includes("Worry / overthinking")) sexual+=1;
+ if(A.energy.includes("Creation")||A.energy.includes("Work / ambition")) sexual+=1;
+ if(A.cost==="Old habits") sexual+=1;
+ if(A.cost==="Comfort") sexual+=1;
+ if(A.cost==="Security") sexual+=1;
+ if(A.obstacle==="habits") sexual+=2;
+ if(A.obstacle==="scattered") sexual+=1;
+ if(A.obstacle==="momentum") sexual+=1;
+ if(sexual>=5)return "Sexual Energy";
  if(o==="bind")return "Soul Bind";
  if(o==="criticism")return "Self-Criticism";
  if(o==="habits")return "Energy Leakage";
@@ -325,7 +342,6 @@ function determinePattern(){
  if(o==="fear")return "Identity Vacuum";
  if(o==="scattered")return "Inaction & Scattered Energy";
  if(o==="unknown")return "Identity Vacuum";
- if(A.energy.includes("Sexuality / desire")||A.response==="Pursue sexual desire")return "Sexual Energy";
  return o==="momentum"?"Inaction & Scattered Energy":"False Beliefs About Possibility";
 }
 function setAdaptive(){
@@ -358,9 +374,9 @@ function setAdaptive(){
    sub.textContent="Think habits, people, attention, or environments.";
    area.innerHTML='<textarea id="adaptiveText" placeholder="Most of my energy gets drained by..."></textarea>';
  }else{
-   title.textContent="Do you feel like you have more energy, desire, or creative force inside you than your current life has somewhere to put?";
-   sub.textContent="Choose the answer that feels most honest.";
-   renderAdaptiveChoices(["Strongly yes","Somewhat","Not really","No"]);
+   title.textContent="When desire gets intense, what happens next?";
+   sub.textContent="This is not about judging the desire. It is about understanding where the current tends to go.";
+   renderAdaptiveChoices(["I act on it immediately","I suppress or fight it","I turn it into stimulation and distraction","I can redirect it into creation or work","It depends — I don't have a consistent direction"]);
  }
 }
 function renderAdaptiveChoices(items){
@@ -481,7 +497,7 @@ function recommend(){
    if(deep){
      product="Sexual Alchemy";
      title="You're ready to direct the deepest current.";
-     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced practice for learning to work with desire as a source of direction and creative force — with a deeper system for turning intense impulses into deliberate action, creation, and pursuit.";
+     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced system for learning to work with desire as a source of direction and creative force — with a structured practice for understanding your patterns, containing the impulse, redirecting the current, and turning intensity into deliberate action, creation, and pursuit.";
    }else{
      product="Identity Reset Meditation";
      title="Start by changing the state you return to.";
@@ -508,7 +524,40 @@ function recommend(){
 }
 
 
-(function(){const t=document.getElementById("ambientTone"),b=document.getElementById("toneToggle");if(!t||!b)return;t.volume=.18;let on=true;async function play(){if(!on||!t.paused)return;try{await t.play()}catch(e){}}["pointerdown","keydown","touchstart"].forEach(e=>window.addEventListener(e,play,{passive:true}));b.onclick=async()=>{on=!on;if(on){await play();b.textContent="432 Hz · On";b.setAttribute("aria-pressed","true")}else{t.pause();b.textContent="432 Hz · Off";b.setAttribute("aria-pressed","false")}};play()})();
+(function(){
+  const t=document.getElementById("ambientTone"),b=document.getElementById("toneToggle");
+  if(!t||!b)return;
+  t.volume=.18;
+  let on=true;
+  let started=false;
+  async function play(){
+    if(!on||!t.paused)return;
+    try{
+      await t.play();
+      started=true;
+    }catch(e){
+      // Browsers may block unmuted autoplay until the visitor interacts with the page.
+      started=false;
+    }
+  }
+  // Try immediately. If autoplay is blocked, the first real interaction starts it.
+  t.addEventListener("canplay",play,{once:false});
+  ["pointerdown","keydown","touchstart"].forEach(e=>window.addEventListener(e,()=>{ if(on) play(); },{passive:true}));
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&on)play();});
+  b.onclick=async()=>{
+    if(on){
+      // The click itself is a user gesture, so playback is allowed here.
+      await play();
+      b.textContent=started?"432 Hz · On":"432 Hz · On · Tap to play";
+      b.setAttribute("aria-pressed","true");
+    }else{
+      t.pause();
+      b.textContent="432 Hz · Off";
+      b.setAttribute("aria-pressed","false");
+    }
+  };
+  play();
+})();
 
 setup();
 track("draw_started");
