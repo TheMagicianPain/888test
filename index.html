@@ -38,9 +38,12 @@ textarea:focus{border-color:#aaa}.choices{display:grid;gap:11px;max-width:680px;
 @keyframes cardReveal{from{opacity:0;transform:translateY(14px) scale(.985);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
 @keyframes selectedGlow{from{box-shadow:0 0 0 rgba(244,239,229,0)}to{box-shadow:0 0 0 1px rgba(244,239,229,.06),0 0 24px rgba(244,239,229,.045)}}
 @media(max-width:600px){.cards{grid-template-columns:repeat(2,1fr)}.scale button{height:45px}.wrap{padding-left:16px;padding-right:16px}}
+.tone-toggle{position:fixed;right:18px;top:18px;z-index:20;border:1px solid #44444e;background:rgba(17,17,23,.9);color:var(--text);padding:9px 13px;border-radius:999px;font:11px Arial,sans-serif;cursor:pointer}.extra-section{max-width:680px;margin:38px auto 0;padding-top:28px;border-top:1px solid #272730}.extra-section h3{text-align:center;font:21px Georgia,serif;font-weight:400;margin:0 0 20px}.testimonial{background:#111117;border:1px solid #30303a;border-radius:12px;padding:17px 18px;margin-bottom:11px}.testimonial p{font:15px/1.6 Arial,sans-serif;margin:0 0 8px}.testimonial .name{font:12px Arial,sans-serif;color:#777}.stars{letter-spacing:3px;font:12px Arial,sans-serif;margin-bottom:8px}.bundle-card{margin-top:22px;text-align:center;background:#111117;border:1px solid #30303a;border-radius:14px;padding:22px}.bundle-card p{font:15px/1.6 Arial,sans-serif;color:var(--muted)}@media(max-width:600px){.tone-toggle{right:12px;top:12px}}
 </style>
 </head>
 <body>
+<button id="toneToggle" class="tone-toggle" type="button" aria-pressed="true">432 Hz · On</button>
+<audio id="ambientTone" loop preload="auto"><source src="https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3" type="audio/mpeg"></audio>
 <div class="wrap">
   <div class="logo">THE DRAW</div>
   <div class="progress"><div class="bar" id="bar"></div></div>
@@ -142,12 +145,23 @@ textarea:focus{border-color:#aaa}.choices{display:grid;gap:11px;max-width:680px;
       <p id="productText"></p>
       <button class="btn primary" onclick="continueToRecommendation()">Explore This Path</button>
     </div>
-    <p class="tiny">TEST MODE — the tarot interpretation is generated through the reading API. No payment or account is connected.</p>
+    <div class="extra-section">
+      <h3>From People Who've Taken the Next Step</h3>
+      <div class="testimonial"><div class="stars">★★★★★</div><p>"I cried listening to this meditation. Thank you!"</p><div class="name">— Anaya</div></div>
+      <div class="testimonial"><div class="stars">★★★★★</div><p>"I have been using the app and it's really cool so far. I love the meditation!"</p><div class="name">— S. Marxia</div></div>
+      <div class="testimonial"><div class="stars">★★★★★</div><p>"After following the meditation... it definitely works!"</p><div class="name">— Daniel</div></div>
+      <div class="bundle-card"><h3>Want More Than One?</h3><p>Your identity evolves, and so do the patterns you encounter.<br><br>Save the experience and return whenever a new block appears.</p><button class="btn primary" onclick="window.location.href='https://whop.com/checkout/plan_T1i5TdWSBoPKU'">Get 3 — $12</button></div>
+    </div>
+    <p class="tiny">Your reading is complete. Choose the level of work that matches where you are.</p>
     <div class="nav"><span></span><button class="btn" onclick="location.reload()">Start Again</button></div>
   </section>
 </div>
 
 <script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+function track(eventName, params={}){ try { gtag("event", eventName, {...params, funnel:"the_draw"}); } catch(e) {} }
+</script>
 const READING_API_URL = "https://tarot-relay.naturopathpain.workers.dev";
 const INITIATION_LANDING_URL = "https://magiguide.whop.site/";
 const SEXUAL_ALCHEMY_LANDING_URL = "https://sexual-alchemy-mp.whop.site/";
@@ -242,11 +256,11 @@ function renderChoices(id,items,multi=false){
        // Enable the step-specific Continue button once a choice is made.
        // These buttons start disabled intentionally so users cannot advance
        // without answering the question.
-       if(id==="seriousness"){
+       if(id==="seriousness"){ track("seriousness_selected",{seriousness:value});
          const btn=document.getElementById("seriousBtn");
          if(btn) btn.disabled=false;
        }
-       if(id==="income"){
+       if(id==="income"){ track("income_selected");
          const btn=document.getElementById("incomeBtn");
          if(btn) btn.disabled=false;
        }
@@ -290,7 +304,12 @@ function next(){
  if(step===5 && !A.response)return alert("Choose what you usually do with the energy.");
  if(step===6 && !A.cost)return alert("Choose what you might have to leave behind.");
  if(step===7 && !A.adaptive)return alert("Answer the deeper question.");
- if(step===1)A.identity=document.getElementById("identity").value.trim();
+ if(step===1){A.identity=document.getElementById("identity").value.trim();track("identity_completed");}
+ if(step===2)track("distance_completed",{identity_gap:A.gap});
+ if(step===3)track("resistance_completed",{obstacle:A.obstacle});
+ if(step===4)track("energy_completed",{energy:A.energy.join("|")});
+ if(step===5)track("direction_completed",{direction:A.response});
+ if(step===6)track("transformation_completed",{cost:A.cost});
  if(step===6)setAdaptive();
  step++;screen(step);
 }
@@ -351,9 +370,12 @@ async function draw(){
  const adaptiveText=document.getElementById("adaptiveText");
  if(adaptiveText) A.adaptive=adaptiveText.value.trim();
  if(!A.adaptive)return alert("Answer the deeper question.");
+ track("deeper_question_completed",{pattern:A.pattern});
  step=8;screen(8);
  try{
+   track("reading_started",{pattern:A.pattern});
    const cards=await buildReading();
+   track("reading_revealed",{pattern:A.pattern});
    step=9;screen(9);
  }catch(err){
    console.error(err);
@@ -414,11 +436,13 @@ async function buildReading(){
 }
 function continueToRecommendation(){
  const product=document.getElementById("productName").textContent;
- if(product==="The Magician's Initiation") window.location.href=INITIATION_LANDING_URL;
- else if(product==="Sexual Alchemy") window.location.href=SEXUAL_ALCHEMY_LANDING_URL;
+ track("offer_clicked",{product:product});
+ if(product==="The Magician's Initiation"){track("initiation_offer_clicked");window.location.href=INITIATION_LANDING_URL;}
+ else if(product==="Sexual Alchemy"){track("sexual_alchemy_offer_clicked");window.location.href=SEXUAL_ALCHEMY_LANDING_URL;}
  else {
    // Meditation stays inside The Draw. In the production app this is where the
    // $8.88 single / $12 bundle unlock flow opens. The sandbox keeps this local.
+   track("meditation_offer_clicked");
    showMeditationTest();
  }
 }
@@ -442,7 +466,7 @@ function twistFor(p){
  "Momentum":"You may not need another insight. You may need to prove to yourself, repeatedly, that you can keep a promise to the person you're becoming."
  };return x[p]||x["Identity Vacuum"];
 }
-function showOffer(){step=10;screen(10);renderChoices("seriousness",seriousness)}
+function showOffer(){track("reading_continued",{pattern:A.pattern});step=10;screen(10);renderChoices("seriousness",seriousness)}
 function showIncome(){
  if(!A.seriousness)return alert("Choose how seriously you want to work on this.");
  step=11;screen(11);renderChoices("income",incomes)
@@ -471,6 +495,7 @@ function recommend(){
    title="Start by changing the state you return to.";
    text="You don't need to force the whole transformation at once. Start by working directly with the pattern your reading revealed, then keep building from there.";
  }
+ track("recommendation_shown",{product:product,pattern:A.pattern,seriousness:A.seriousness});
  document.getElementById("recommendTitle").textContent=title;
  document.getElementById("productName").textContent=product;
  const priceEl=document.getElementById("productPrice");
@@ -481,7 +506,11 @@ function recommend(){
  button.textContent=product==="Identity Reset Meditation"?"Continue to Meditation":"Explore This Path";
 }
 
+
+(function(){const t=document.getElementById("ambientTone"),b=document.getElementById("toneToggle");if(!t||!b)return;t.volume=.18;let on=true;async function play(){if(!on||!t.paused)return;try{await t.play()}catch(e){}}["pointerdown","keydown","touchstart"].forEach(e=>window.addEventListener(e,play,{passive:true}));b.onclick=async()=>{on=!on;if(on){await play();b.textContent="432 Hz · On";b.setAttribute("aria-pressed","true")}else{t.pause();b.textContent="432 Hz · Off";b.setAttribute("aria-pressed","false")}};play()})();
+
 setup();
+track("draw_started");
 </script>
 </body>
 </html>
