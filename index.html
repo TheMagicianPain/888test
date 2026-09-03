@@ -149,7 +149,7 @@ textarea:focus{border-color:#aaa}.choices{display:grid;gap:11px;max-width:680px;
 
 <script>
 const READING_API_URL = "https://tarot-relay.naturopathpain.workers.dev";
-const INITIATION_LANDING_URL = "https://whop.com/magipath/products/the-magician-s-initiation/";
+const INITIATION_LANDING_URL = "https://magiguide.whop.site/";
 const SEXUAL_ALCHEMY_LANDING_URL = "https://sexual-alchemy-mp.whop.site/";
 
 const A={
@@ -456,7 +456,7 @@ function recommend(){
    if(deep){
      product="Sexual Alchemy";
      title="You're ready to direct the deepest current.";
-     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced practice for working with desire, direction, and creative force.";
+     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced practice for learning to work with desire as a source of direction and creative force — with a deeper system for turning intense impulses into deliberate action, creation, and pursuit.";
    }else{
      product="Identity Reset Meditation";
      title="Start by changing the state you return to.";
@@ -465,7 +465,7 @@ function recommend(){
  }else if(deep){
    product="The Magician's Initiation";
    title="You're ready for deliberate identity work.";
-   text="Your reading points to a pattern worth working with directly. The Magician's Initiation gives you a structured system for identity, thought, action, archetype work, and momentum.";
+   text="Your reading points to a pattern worth working with directly. The Magician's Initiation gives you a structured foundation for identity, thought, action, archetype work, and momentum — so the person you named has a practical system to start becoming them.";
  }else{
    product="Identity Reset Meditation";
    title="Start by changing the state you return to.";
@@ -473,7 +473,9 @@ function recommend(){
  }
  document.getElementById("recommendTitle").textContent=title;
  document.getElementById("productName").textContent=product;
- document.getElementById("productPrice").textContent=product==="Sexual Alchemy"?"$444":product==="The Magician's Initiation"?"$33":"$8.88";
+ const priceEl=document.getElementById("productPrice");
+ priceEl.textContent=product==="Identity Reset Meditation"?"$8.88":"";
+ priceEl.style.display=product==="Identity Reset Meditation"?"block":"none";
  document.getElementById("productText").textContent=text;
  const button=document.querySelector('#recommend .btn.primary');
  button.textContent=product==="Identity Reset Meditation"?"Continue to Meditation":"Explore This Path";
