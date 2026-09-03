@@ -140,14 +140,18 @@ textarea:focus{border-color:#aaa}.choices{display:grid;gap:11px;max-width:680px;
       <h2 id="productName" style="font-weight:400;font-size:29px;margin:8px 0"></h2>
       <div class="price" id="productPrice"></div>
       <p id="productText"></p>
-      <button class="btn primary" onclick="alert('TEST MODE — this would open the real offer.')">Explore This Path</button>
+      <button class="btn primary" onclick="continueToRecommendation()">Explore This Path</button>
     </div>
-    <p class="tiny">TEST MODE — no payment, account, Whop, or production API is connected.</p>
+    <p class="tiny">TEST MODE — the tarot interpretation is generated through the reading API. No payment or account is connected.</p>
     <div class="nav"><span></span><button class="btn" onclick="location.reload()">Start Again</button></div>
   </section>
 </div>
 
 <script>
+const READING_API_URL = "https://tarot-relay.naturopathpain.workers.dev";
+const INITIATION_LANDING_URL = "https://whop.com/magipath/products/the-magician-s-initiation/";
+const SEXUAL_ALCHEMY_LANDING_URL = "https://sexual-alchemy-mp.whop.site/";
+
 const A={
   identity:"",
   gap:null,
@@ -343,45 +347,76 @@ function renderAdaptiveChoices(items){
  const area=document.getElementById("adaptiveArea");area.innerHTML='<div class="choices"></div>';
  items.forEach(x=>{let b=document.createElement("button");b.className="choice";b.textContent=x;b.onclick=()=>{area.querySelectorAll("button").forEach(y=>y.classList.remove("selected"));b.classList.add("selected");A.adaptive=x};area.firstChild.appendChild(b)});
 }
-function draw(){
+async function draw(){
  const adaptiveText=document.getElementById("adaptiveText");
  if(adaptiveText) A.adaptive=adaptiveText.value.trim();
  if(!A.adaptive)return alert("Answer the deeper question.");
  step=8;screen(8);
- setTimeout(()=>{buildReading();step=9;screen(9)},1400);
+ try{
+   const cards=await buildReading();
+   step=9;screen(9);
+ }catch(err){
+   console.error(err);
+   alert("The reading couldn't be generated. Check your connection and try again.");
+   step=7;screen(7);
+ }
 }
 function randomCards(){
  let pool=[...arcana],out=[];
  for(let i=0;i<5;i++){let idx=Math.floor(Math.random()*pool.length);out.push(pool.splice(idx,1)[0])}
  return out;
 }
-function buildReading(){
+function escapeHtml(value){
+ return String(value ?? "").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+function readingPrompt(cards){
+ const cardList=cards.map((c,i)=>`${i+1}. ${c[1]} — ${c[0]} — ${meanings[c[1]]}`).join("\n");
+ const energy=A.energy.join(", ") || "not specified";
+ return `You are the reading engine for The Magician's Path. Give a personalized tarot reading using the user's diagnostic answers as context and the randomly drawn cards as the symbolic framework. The questionnaire diagnoses patterns; it does not determine which cards were drawn. Do not pretend the cards were selected because they match the diagnosis.\n\nVOICE: direct, warm, spiritually serious, human. Use contractions. Vary sentence length. Avoid generic horoscope language and empty spiritual clichés. Never use gendered pronouns for the person; speak directly as “you.” Do not claim supernatural certainty or make medical/psychological diagnoses. Tarot is a reflective symbolic tool.\n\nIDENTITY THEY WANT TO BECOME: ${A.identity}\nIDENTITY GAP (1-10): ${A.gap}\nPRIMARY PATTERN: ${A.pattern}\nMAIN OBSTACLE: ${A.obstacle}\nSTRONGEST ENERGY DESTINATIONS: ${energy}\nWHAT THEY DO WITH A SURGE OF ENERGY: ${A.response}\nWHAT THEY MAY HAVE TO LEAVE BEHIND: ${A.cost}\nADAPTIVE ANSWER: ${A.adaptive}\n\nFIVE CARDS, IN ORDER: THE SELF, THE MIRROR, THE SHADOW, THE BINDING, THE PATH\n${cardList}\n\nWrite a cohesive personalized reading of 180-260 words. Give each position real interpretive weight, with THE SHADOW receiving the most attention. Explicitly connect the cards to the person's stated identity and diagnostic pattern. End with a concrete direction they can practice. Also return a short 1-2 sentence knife twist that makes the central pattern emotionally clear without shaming them.\n\nReturn ONLY valid JSON in this exact shape:\n{\n  "reading": "...",\n  "knifeTwist": "..."\n}`;
+}
+async function generateApiReading(cards){
+ const response=await fetch(READING_API_URL,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1800,messages:[{role:"user",content:readingPrompt(cards)}]})
+ });
+ if(!response.ok) throw new Error(`Reading API returned ${response.status}`);
+ const data=await response.json();
+ const text=(data.content||[]).map(x=>x.text||"").join("").replace(/```json|```/g,"").trim();
+ const parsed=JSON.parse(text);
+ if(!parsed.reading) throw new Error("Reading API returned no reading");
+ return parsed;
+}
+async function buildReading(){
  const cards=randomCards(),names=["THE SELF","THE MIRROR","THE SHADOW","THE BINDING","THE PATH"];
  document.getElementById("readingTitle").textContent=A.identity;
  const box=document.getElementById("cards");box.innerHTML="";
- cards.forEach((c,i)=>{box.innerHTML+=`<div class="card" style="animation-delay:${i*110}ms"><div class="position">${names[i]}</div><img src="${c[2]}" alt="${c[1]} — Rider-Waite-Smith Major Arcana" loading="eager" referrerpolicy="no-referrer"><div class="name">${c[1]}</div><div class="roman">${c[0]}</div></div>`});
+ cards.forEach((c,i)=>{box.innerHTML+=`<div class="card" style="animation-delay:${i*110}ms"><div class="position">${names[i]}</div><img src="${c[2]}" alt="${escapeHtml(c[1])} — Rider-Waite-Smith Major Arcana" loading="eager" referrerpolicy="no-referrer"><div class="name">${escapeHtml(c[1])}</div><div class="roman">${escapeHtml(c[0])}</div></div>`});
  document.querySelectorAll(".source-note").forEach(el=>el.remove());
  box.insertAdjacentHTML("afterend",'<div class="source-note">Card artwork: original Rider-Waite-Smith Major Arcana, illustrated by Pamela Colman Smith; public-domain source. <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck" target="_blank" rel="noopener">View source</a></div>');
- const shadow=cards[2][1], path=cards[4][1];
- const gap=A.gap<=3?"You are already close to this identity. The work is less about discovering a new self and more about consistently embodying what you already recognize.":A.gap<=6?"You can see the person you're becoming, but there is still a meaningful distance between recognition and embodiment.":"The distance is significant. That does not mean the identity is unavailable; it means the transition will require deliberate practice.";
- const p=A.pattern;
- const diagnosis={
- "Identity Vacuum":"You may be trying to become someone without fully deciding who gets to define that person. When identity is borrowed from expectations, performance can replace genuine expression.",
- "Soul Bind":"Your growth may be competing with loyalties that were built around an older version of you. The difficult question is whether belonging requires you to remain smaller than you are becoming.",
- "Inaction & Scattered Energy":"The problem may not be a lack of potential. It may be that your strongest intentions repeatedly lose to interruption, inconsistency, and unclosed loops.",
- "Self-Criticism":"When every imperfect attempt becomes evidence against you, growth becomes psychologically expensive. You begin protecting yourself from failure by reducing the number of times you truly try.",
- "False Beliefs About Possibility":"A possibility can disappear from your life before you ever test it. The danger is confusing a repeated assumption with a demonstrated fact.",
- "Energy Leakage":"Your energy is finite in attention even when your potential is not. Where you repeatedly spend your strongest attention becomes a vote for the life you are building.",
- "Energy Sexuality":"Desire is not automatically a problem. The question is whether your strongest impulses are being directed deliberately or allowed to choose the destination for you.",
- "Momentum":"You may already know how to move forward. Your next level is making movement ordinary enough that you no longer need inspiration to begin."
- }[p]||"The reading points toward a pattern that becomes clearer when you compare what you want with what you repeatedly do.";
- const html=`<h3>The Self — ${cards[0][1]}</h3><p>${cards[0][1]} speaks to the qualities already present in the identity you described. Your desired identity is not simply a title; it is a set of qualities you will have to practice.</p>
- <h3>The Mirror — ${cards[1][1]}</h3><p>${gap} Right now, your strongest energy appears to be moving toward ${A.energy.join(" and ")}.</p>
- <h3>The Shadow — ${shadow}</h3><p>${diagnosis}</p>
- <h3>The Binding — ${cards[3][1]}</h3><p>The pattern stays alive when the short-term response feels safer, easier, or more familiar than the identity you say you want. Your answer about what you may have to leave behind matters here: ${A.cost}.</p>
- <h3>The Path — ${path}</h3><p>${path} asks you to develop a quality that makes the desired identity more repeatable. The goal is not to perform a new identity for a moment. It is to practice it until it becomes familiar.</p>`;
+ const result=await generateApiReading(cards);
+ const html=`<h3>The Self — ${escapeHtml(cards[0][1])}</h3><p>${escapeHtml(result.reading)}</p>`;
  document.getElementById("reading").innerHTML=html;
- document.getElementById("twist").textContent=twistFor(p);
+ document.getElementById("twist").textContent=result.knifeTwist || twistFor(A.pattern);
+ return cards;
+}
+function continueToRecommendation(){
+ const product=document.getElementById("productName").textContent;
+ if(product==="The Magician's Initiation") window.location.href=INITIATION_LANDING_URL;
+ else if(product==="Sexual Alchemy") window.location.href=SEXUAL_ALCHEMY_LANDING_URL;
+ else {
+   // Meditation stays inside The Draw. In the production app this is where the
+   // $8.88 single / $12 bundle unlock flow opens. The sandbox keeps this local.
+   showMeditationTest();
+ }
+}
+function showMeditationTest(){
+ document.getElementById("recommendTitle").textContent="Start by changing the state you return to.";
+ document.getElementById("productName").textContent="Identity Reset Meditation";
+ document.getElementById("productPrice").textContent="$8.88";
+ document.getElementById("productText").textContent="Your reading points to a pattern worth working with directly. In the full app, this step keeps you inside The Draw: choose the $8.88 meditation or the $12 three-meditation bundle, then continue deeper when you're ready.";
+ document.querySelector('#recommend .btn.primary').textContent="Continue to Meditation";
+ document.querySelector('.tiny').textContent="TEST MODE — meditation playback and checkout are represented here; production uses the existing in-app unlock flow.";
 }
 function twistFor(p){
  const x={
@@ -405,18 +440,33 @@ function recommend(){
  step=12;screen(12);
  const deep=A.seriousness==="committed"||A.seriousness==="allin";
  let product,title,text;
- if(A.pattern==="Energy Sexuality"&&deep&&A.income!=="low"&&A.income!=="25"){
-   product="Sexual Alchemy";title="You're ready to direct the deepest current.";text="A deeper practice for working consciously with desire, attention, and creative direction. This is the advanced path in this test funnel.";
- }else if(deep&&A.income!=="low"&&A.income!=="25"){
-   product="The Magician's Initiation";title="You're ready for deliberate identity work.";text="A structured initiation into identity, momentum, archetype work, and the practices of becoming the person you've described.";
+ if(A.pattern==="Sexual Energy"||A.pattern==="Energy Sexuality"||A.pattern==="Sexual Alchemy"){
+   if(deep){
+     product="Sexual Alchemy";
+     title="You're ready to direct the deepest current.";
+     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced practice for working with desire, direction, and creative force.";
+   }else{
+     product="Identity Reset Meditation";
+     title="Start by changing the state you return to.";
+     text="You don't need to force the deepest work before you're ready for it. Start by working directly with the pattern your reading revealed.";
+   }
+ }else if(deep){
+   product="The Magician's Initiation";
+   title="You're ready for deliberate identity work.";
+   text="Your reading points to a pattern worth working with directly. The Magician's Initiation gives you a structured system for identity, thought, action, archetype work, and momentum.";
  }else{
-   product="Identity Reset Meditation";title="Start by changing the state you return to.";text="A lower-friction first step for working directly with the pattern your reading revealed before committing to a deeper path.";
+   product="Identity Reset Meditation";
+   title="Start by changing the state you return to.";
+   text="You don't need to force the whole transformation at once. Start by working directly with the pattern your reading revealed, then keep building from there.";
  }
  document.getElementById("recommendTitle").textContent=title;
  document.getElementById("productName").textContent=product;
  document.getElementById("productPrice").textContent=product==="Sexual Alchemy"?"$444":product==="The Magician's Initiation"?"$33":"$8.88";
  document.getElementById("productText").textContent=text;
+ const button=document.querySelector('#recommend .btn.primary');
+ button.textContent=product==="Identity Reset Meditation"?"Continue to Meditation":"Explore This Path";
 }
+
 setup();
 </script>
 </body>
