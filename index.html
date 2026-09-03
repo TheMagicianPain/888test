@@ -145,12 +145,14 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px rgba(13,148,136,.
       <p id="productText"></p>
       <button class="btn primary" onclick="continueToRecommendation()">Explore This Path</button>
     </div>
-    <div class="extra-section">
-      <h3>From People Who've Taken the Next Step</h3>
-      <div class="testimonial"><div class="stars">★★★★★</div><p>"I cried listening to this meditation. Thank you!"</p><div class="name">— Anaya</div></div>
-      <div class="testimonial"><div class="stars">★★★★★</div><p>"I have been using the app and it's really cool so far. I love the meditation!"</p><div class="name">— S. Marxia</div></div>
-      <div class="testimonial"><div class="stars">★★★★★</div><p>"After following the meditation... it definitely works!"</p><div class="name">— Daniel</div></div>
-      <div class="bundle-card"><h3>Want More Than One?</h3><p>Your identity evolves, and so do the patterns you encounter.<br><br>Save the experience and return whenever a new block appears.</p><button class="btn primary" onclick="window.location.href='https://whop.com/checkout/plan_T1i5TdWSBoPKU'">Get 3 — $12</button></div>
+    <div class="extra-section" id="recommendExtras" style="display:none">
+      <h3 id="recommendExtrasTitle">From People Who've Taken the Next Step</h3>
+      <div id="meditationTestimonials">
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"I cried listening to this meditation. Thank you!"</p><div class="name">— Anaya</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"I have been using the app and it's really cool so far. I love the meditation!"</p><div class="name">— S. Marxia</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"After following the meditation... it definitely works!"</p><div class="name">— Daniel</div></div>
+      </div>
+      <div class="bundle-card" id="meditationBundle"><h3>Want More Than One?</h3><p>Your identity evolves, and so do the patterns you encounter.<br><br>Save the experience and return whenever a new block appears.</p><button class="btn primary" onclick="window.location.href='https://whop.com/checkout/plan_T1i5TdWSBoPKU'">Get 3 — $12</button></div>
     </div>
     <p class="tiny">Your reading is complete. Choose the level of work that matches where you are.</p>
     <div class="nav"><span></span><button class="btn" onclick="location.reload()">Start Again</button></div>
@@ -521,6 +523,12 @@ function recommend(){
  document.getElementById("productText").textContent=text;
  const button=document.querySelector('#recommend .btn.primary');
  button.textContent=product==="Identity Reset Meditation"?"Continue to Meditation":"Explore This Path";
+ const extras=document.getElementById("recommendExtras");
+ if(extras){
+   // These testimonials are specifically for the meditation experience.
+   // Never display them on Initiation or Sexual Alchemy recommendations.
+   extras.style.display=product==="Identity Reset Meditation"?"block":"none";
+ }
 }
 
 
