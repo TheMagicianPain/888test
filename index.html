@@ -1,574 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Draw — Identity Reading</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070b0d">
+<meta name="description" content="The Rockstar Initiation: a private 30-day artistic identity experience for established artists entering their next era.">
+<title>The Rockstar Initiation — Your Next Era Begins With You</title>
 <style>
-:root{--bg1:#12100e;--bg:#12100e;--bg-gradient:radial-gradient(ellipse at top,#14201e 0%,#0a0f0e 60%);--panel:rgba(255,255,255,.045);--line:rgba(255,255,255,.08);--text:#f3f1ec;--muted:#a39c8c;--accent:#0D9488;--accent2:#17bfa9;--input-bg:rgba(255,255,255,.05);--card-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 10px 28px rgba(0,0,0,.35)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg-gradient);color:var(--text)}
-body{font-family:Georgia,"Times New Roman",serif;position:relative;overflow-x:hidden}body::before{content:"";position:fixed;inset:-20%;pointer-events:none;background:radial-gradient(circle at 50% 18%,rgba(20,80,72,.10),transparent 28%),radial-gradient(circle at 15% 70%,rgba(150,125,190,.035),transparent 24%),radial-gradient(circle at 85% 55%,rgba(120,145,190,.025),transparent 22%);animation:ambient 14s ease-in-out infinite alternate;z-index:0}.wrap{position:relative;z-index:1;max-width:820px;margin:auto;padding:28px 20px 70px}
-.logo{text-align:center;font:12px Arial,sans-serif;letter-spacing:5px;opacity:.55;margin:10px 0 35px;animation:softGlow 5s ease-in-out infinite}
-.progress{height:3px;background:rgba(0,0,0,.06);border-radius:9px;overflow:hidden;margin-bottom:55px;box-shadow:0 0 18px rgba(244,239,229,.025)}
-.bar{height:100%;background:linear-gradient(90deg,rgba(13,148,136,.45),var(--accent),rgba(23,191,169,.45));background-size:180% 100%;width:14%;transition:width .55s cubic-bezier(.22,.61,.36,1);animation:barShimmer 4s ease-in-out infinite}
-.screen{display:none}.screen.active{display:block;animation:in .55s cubic-bezier(.22,.61,.36,1) both}.screen.active .eyebrow{animation:eyebrowIn .7s ease both}.screen.active h1{animation:titleIn .7s .04s cubic-bezier(.22,.61,.36,1) both}.screen.active .sub,.screen.active textarea,.screen.active .choices,.screen.active .scale,.screen.active .reading,.screen.active .nav{animation:contentIn .65s .1s cubic-bezier(.22,.61,.36,1) both}
-@keyframes in{from{opacity:0;transform:translateY(10px);filter:blur(1px)}to{opacity:1;transform:none;filter:none}}
-@keyframes eyebrowIn{from{opacity:0;letter-spacing:5px}to{opacity:1;letter-spacing:3px}}
-@keyframes titleIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
-@keyframes contentIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-@keyframes ambient{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.035)}}
-@keyframes softGlow{0%,100%{opacity:.5;text-shadow:0 0 0 transparent}50%{opacity:.64;text-shadow:0 0 14px rgba(244,239,229,.12)}}
-@keyframes barShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.eyebrow{text-align:center;font:11px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
-h1{font-size:clamp(34px,7vw,62px);line-height:1.03;font-weight:400;text-align:center;margin:0 auto 18px;max-width:750px}
-.sub{text-align:center;font:15px/1.65 Arial,sans-serif;color:var(--muted);max-width:600px;margin:0 auto 38px}
-textarea{display:block;width:100%;min-height:145px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;font:17px/1.5 Georgia,serif;outline:none}
-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 1px rgba(13,148,136,.16)}.choices{display:grid;gap:11px;max-width:680px;margin:auto}
-.choice{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px 19px;text-align:left;font:15px Arial,sans-serif;transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease}.choice:hover{border-color:rgba(255,255,255,.28);transform:translateY(-1px);box-shadow:0 7px 24px rgba(0,0,0,.18),0 0 18px rgba(244,239,229,.025)}
-.choice.selected{border-color:rgba(13,148,136,.45);background:rgba(13,148,136,.06);box-shadow:0 0 0 1px rgba(13,148,136,.08),0 0 24px rgba(13,148,136,.06);animation:selectedGlow .45s ease both}
-.scale{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;max-width:680px;margin:auto}
-.scale button{height:55px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px}
-.scale button.selected{background:var(--text);color:#fff}
-.nav{display:flex;justify-content:space-between;max-width:680px;margin:28px auto 0;gap:12px}
-.btn{border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text);padding:13px 22px;border-radius:999px;font:14px Arial,sans-serif;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease}.btn:not(:disabled):hover{transform:translateY(-1px);border-color:rgba(255,255,255,.28);box-shadow:0 0 18px rgba(244,239,229,.045)}
-.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:var(--accent);box-shadow:0 1px 2px rgba(13,148,136,.15),0 8px 20px rgba(13,148,136,.18)}
-.btn:disabled{opacity:.3;cursor:not-allowed}
-.center{text-align:center}.loading{padding:80px 0}.spinner{position:relative;width:42px;height:42px;border:1px solid rgba(13,148,136,.18);border-top-color:var(--accent);border-radius:50%;animation:spin 2.4s cubic-bezier(.5,.1,.5,.9) infinite;margin:25px auto;box-shadow:0 0 22px rgba(244,239,229,.045)}.spinner::before,.spinner::after{content:"";position:absolute;border:1px solid rgba(244,239,229,.12);border-radius:50%;inset:6px}.spinner::after{inset:12px;border-color:rgba(244,239,229,.18);animation:pulse 1.8s ease-in-out infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{0%,100%{opacity:.35;transform:scale(.82)}50%{opacity:.85;transform:scale(1)}}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:30px 0}.card{background:var(--panel);border:1px solid rgba(255,255,255,.08);box-shadow:var(--card-shadow);border-radius:12px;padding:10px 8px 13px;text-align:center;min-width:0;overflow:hidden;opacity:0;animation:cardReveal .7s cubic-bezier(.22,.61,.36,1) forwards;transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease}.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.22);box-shadow:0 12px 30px rgba(0,0,0,.22),0 0 22px rgba(244,239,229,.035)}.card .position{font:10px Arial,sans-serif;letter-spacing:1.8px;color:#888;margin:2px 0 9px;text-transform:uppercase}.card img{display:block;width:100%;aspect-ratio:2/3.42;object-fit:cover;border-radius:7px;border:1px solid #2e2e36;background:#08080b}.card .name{font:15px Georgia,serif;margin-top:10px;line-height:1.2}.card img{transition:transform .5s ease,filter .5s ease}.card:hover img{transform:scale(1.012);filter:brightness(1.035)}.card .roman{font:10px Arial,sans-serif;color:#888;margin-top:5px}.reading{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:25px;font:16px/1.75 Arial,sans-serif}.reading h3{font-family:Georgia,serif;font-size:21px;font-weight:400;margin:22px 0 7px}.reading h3:first-child{margin-top:0}.reading-section{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid #272730}.reading-section:last-child{padding-bottom:0;margin-bottom:0;border-bottom:0}.reading-section h3{margin-top:0}.reading-section p{margin:0 0 14px}.reading-section p:last-child{margin-bottom:0}.reading-section:nth-child(3){padding:22px 20px;margin-left:-20px;margin-right:-20px;background:linear-gradient(180deg,rgba(244,239,229,.035),transparent);border-left:1px solid rgba(244,239,229,.16);border-bottom:1px solid #30303a}.twist{margin-top:22px;border-left:2px solid #f4efe5;padding:5px 0 5px 18px;font:18px/1.6 Georgia,serif}.price{font-size:32px;margin:8px 0}.recommend{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:24px;margin-top:25px;text-align:center}.recommend p{font:15px/1.6 Arial;color:var(--muted)}.tiny{font:11px/1.5 Arial;color:#777;text-align:center;margin-top:18px}.source-note{font:11px/1.5 Arial,sans-serif;color:#666;text-align:center;margin-top:14px}.source-note a{color:#888}
-@keyframes cardReveal{from{opacity:0;transform:translateY(14px) scale(.985);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
-@keyframes selectedGlow{from{box-shadow:0 0 0 rgba(244,239,229,0)}to{box-shadow:0 0 0 1px rgba(13,148,136,.08),0 0 24px rgba(13,148,136,.06)}}
-@media(max-width:600px){.cards{grid-template-columns:repeat(2,1fr)}.scale button{height:45px}.wrap{padding-left:16px;padding-right:16px}}
-.tone-toggle{position:fixed;right:18px;top:18px;z-index:20;border:1px solid rgba(0,0,0,.10);background:rgba(27,24,21,.92);color:var(--text);padding:9px 13px;border-radius:999px;font:11px Arial,sans-serif;cursor:pointer}.extra-section{max-width:680px;margin:38px auto 0;padding-top:28px;border-top:1px solid #272730}.extra-section h3{text-align:center;font:21px Georgia,serif;font-weight:400;margin:0 0 20px}.testimonial{background:#111117;border:1px solid #30303a;border-radius:12px;padding:17px 18px;margin-bottom:11px}.testimonial p{font:15px/1.6 Arial,sans-serif;margin:0 0 8px}.testimonial .name{font:12px Arial,sans-serif;color:#777}.stars{letter-spacing:3px;font:12px Arial,sans-serif;margin-bottom:8px}.bundle-card{margin-top:22px;text-align:center;background:#111117;border:1px solid #30303a;border-radius:14px;padding:22px}.bundle-card p{font:15px/1.6 Arial,sans-serif;color:var(--muted)}@media(max-width:600px){.tone-toggle{right:12px;top:12px}}
+:root{--bg:#070b0d;--panel:#10191b;--panel2:#0d1315;--text:#f4f5f1;--muted:#a6b2b0;--teal:#0d9488;--bright:#17bfa9;--border:#25403e;--gold:#D4AF37}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}body:before{content:"";position:absolute;top:0;left:0;right:0;height:860px;pointer-events:none;background:radial-gradient(ellipse at 50% 15%,#0d948823,transparent 63%)}a{color:inherit}.wrap{width:min(100% - 40px,940px);margin:auto}.top{height:76px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #ffffff12;position:relative;z-index:1}.brand{font-size:12px;letter-spacing:.34em;font-weight:800;color:#d6f6ed}.brand span{color:var(--gold)}.hero{text-align:center;padding:100px 0 70px;position:relative}.eyebrow{color:var(--bright);font-size:11px;font-weight:800;letter-spacing:.29em;text-transform:uppercase}.sigil{margin-bottom:22px;display:flex;justify-content:center}.rockstar-star{display:inline-block;width:1em;height:1em;background:var(--gold);clip-path:polygon(50.00% 1.00%, 57.27% 32.45%, 84.65% 15.35%, 67.55% 42.73%, 99.00% 50.00%, 67.55% 57.27%, 84.65% 84.65%, 57.27% 67.55%, 50.00% 99.00%, 42.73% 67.55%, 15.35% 84.65%, 32.45% 57.27%, 1.00% 50.00%, 32.45% 42.73%, 15.35% 15.35%, 42.73% 32.45%);vertical-align:-.12em;flex-shrink:0}.sigil .rockstar-star{width:48px;height:48px}.brand .rockstar-star{width:12px;height:12px;vertical-align:0}.hero h1,h2,h3{font-family:Georgia,'Times New Roman',serif;font-weight:500}.hero h1{font-size:clamp(51px,9vw,100px);letter-spacing:-.065em;line-height:.99;margin:18px auto 22px;max-width:1000px}.hero h1 em{font-style:normal;color:var(--bright)}.lead{font-size:clamp(18px,2.5vw,23px);line-height:1.5;max-width:700px;margin:0 auto 19px;color:#e4ebe7}.sub{color:var(--muted);max-width:690px;margin:0 auto 32px}.cta{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:60px;padding:16px 34px;background:linear-gradient(110deg,var(--teal),var(--bright));border:1px solid #4be0c4;color:#041613;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;box-shadow:0 0 30px #0d94882c;transition:transform .2s,box-shadow .2s}.cta:hover{transform:translateY(-2px);box-shadow:0 0 40px #17bfa944}.micro{font-size:12px;color:#8c9e9a;margin-top:14px}.video{aspect-ratio:16/9;width:min(100%,820px);margin:50px auto 0;border:1px solid #39625a;background:radial-gradient(circle at 50% 45%,#17433e,#091012 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;position:relative;box-shadow:0 18px 70px #0009}.video:before,.video:after{content:"";position:absolute;background:var(--gold);width:18px;height:18px;clip-path:polygon(50.00% 1.00%, 57.27% 32.45%, 84.65% 15.35%, 67.55% 42.73%, 99.00% 50.00%, 67.55% 57.27%, 84.65% 84.65%, 57.27% 67.55%, 50.00% 99.00%, 42.73% 67.55%, 15.35% 84.65%, 32.45% 57.27%, 1.00% 50.00%, 32.45% 42.73%, 15.35% 15.35%, 42.73% 32.45%)}.video:before{top:24px;left:24px}.video:after{bottom:24px;right:24px}.play{border:1px solid #9bd6c9;border-radius:100%;width:80px;height:80px;display:grid;place-items:center;font-size:25px;color:var(--bright);padding-left:5px}.video strong{font-size:13px;letter-spacing:.2em}.video small{font-size:12px;color:var(--muted)}section{padding:85px 0;border-top:1px solid #ffffff12}section h2{text-align:center;font-size:clamp(34px,5.5vw,58px);line-height:1.13;letter-spacing:-.035em;margin:12px auto 20px;max-width:780px}section .intro{text-align:center;max-width:690px;margin:0 auto 45px;color:var(--muted)}.center{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.card{border:1px solid var(--border);background:linear-gradient(140deg,#132022,#0a1012);padding:29px}.card .num{font-size:11px;letter-spacing:.2em;color:var(--bright);font-weight:800}.card h3{font-size:28px;margin:8px 0 9px}.card p{margin:0;color:#b6c3bf;font-size:15px}.full{grid-column:1/-1}.statement{max-width:800px;margin:0 auto;text-align:center;font-family:Georgia,serif;font-size:clamp(24px,4vw,39px);line-height:1.4}.statement em{color:var(--bright);font-style:normal}.stages{display:grid;gap:12px}.stage{display:grid;grid-template-columns:75px 1fr;gap:18px;border:1px solid var(--border);padding:24px;background:var(--panel2)}.roman{font-family:Georgia,serif;font-size:33px;color:var(--bright)}.stage h3{font-size:27px;margin:0 0 5px}.stage p{margin:0;color:var(--muted)}.tag{display:inline-block;margin-top:12px;font-size:11px;letter-spacing:.09em;color:var(--gold);text-transform:uppercase}.stack{border:1px solid #416b63;background:linear-gradient(180deg,#142624,#0a1011);padding:clamp(24px,5vw,55px);max-width:800px;margin:auto}.stack-row{display:flex;gap:15px;align-items:flex-start;padding:15px 0;border-bottom:1px solid #ffffff17}.stack-row:last-child{border-bottom:0}.check{color:var(--bright);font-weight:900}.stack-row b{display:block}.stack-row span{font-size:13px;color:var(--muted)}.pill{border:1px solid #47675e;display:inline-block;padding:8px 17px;color:var(--gold);font-size:11px;letter-spacing:.17em;text-transform:uppercase;margin-bottom:16px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.step{padding:26px;border:1px solid var(--border);background:#0f191a}.step b{font-family:Georgia,serif;font-size:24px}.step p{color:var(--muted);font-size:14px}.faq{max-width:800px;margin:auto}details{border-bottom:1px solid var(--border);padding:19px 0}summary{cursor:pointer;font-weight:650;list-style:none;display:flex;justify-content:space-between;gap:15px}summary:after{content:'+';color:var(--bright)}details[open] summary:after{content:'−'}details p{color:var(--muted);margin:10px 0 0}.end{text-align:center;padding:105px 0;background:radial-gradient(ellipse at center,#0d948820,transparent 65%)}footer{text-align:center;padding:35px 15px;border-top:1px solid #ffffff12;color:#83938e;font-size:12px}footer strong{color:#c7ddd5}.accent{color:var(--bright)}@media(max-width:650px){.hero{padding:65px 0 55px}.grid,.steps{grid-template-columns:1fr}.stage{grid-template-columns:45px 1fr;gap:10px;padding:18px}.roman{font-size:24px}.stage h3{font-size:23px}.video{margin-top:32px}.wrap{width:min(100% - 30px,940px)}section{padding:65px 0}.cta{width:100%;padding:15px}}
+
+/* Diamond-encrusted treatment: fixed letterforms and star silhouettes; only reflected light moves. */
+:root{--diamond-base:#d4af37;--diamond-light:#fffdf2;--diamond-ice:#e7faff}
+@keyframes diamondGlint{0%{background-position:0% 0%,20% 10%,100% 30%,0% 50%}50%{background-position:100% 85%,80% 90%,0% 65%,100% 50%}100%{background-position:0% 0%,20% 10%,100% 30%,0% 50%}}
+/* Layered pinpoint facets with intermittent silver-white flashes over warm gold. */
+.rockstar-star,.brand span.diamond-word,.video .diamond-word{
+ background-color:var(--diamond-base);
+ background-image:
+ radial-gradient(circle at center,rgba(255,255,255,1) 0 1px,rgba(255,255,255,.7) 1.2px,transparent 2.5px),
+ radial-gradient(circle at center,#fff 0 .7px,#dff7ff 1px,transparent 2px),
+ repeating-conic-gradient(from 22deg at 50% 50%,#f9f5da 0deg 16deg,#aa7c1f 19deg 31deg,#fffce9 35deg 42deg,#d1a43d 45deg 60deg),
+ linear-gradient(115deg,#8d6419,#fff2a0 24%,#fff 33%,#b78522 46%,#f9df78 70%,#926a22);
+ background-size:19px 23px,31px 29px,9px 9px,220% 100%;
+ animation:diamondGlint 9s ease-in-out infinite;
+}
+.brand span.diamond-word,.video .diamond-word{
+ color:transparent;
+ -webkit-background-clip:text;
+ background-clip:text;
+ -webkit-text-fill-color:transparent;
+ text-shadow:none;
+}
+.rockstar-star{filter:drop-shadow(0 0 3px #e9cb76a0)}
+@media(prefers-reduced-motion:reduce){.rockstar-star,.brand span.diamond-word,.video .diamond-word{animation:none}}
 </style>
 </head>
 <body>
-<button id="toneToggle" class="tone-toggle" type="button" aria-pressed="true">432 Hz · On</button>
-<audio id="ambientTone" loop preload="auto" autoplay playsinline><source src="https://themagicianpain.github.io/432hz-tone/432%20Hz%20Bring%20Down%20Heart%20Rate.mp3" type="audio/mpeg"></audio>
-<div class="wrap">
-  <div class="logo">THE DRAW</div>
-  <div class="progress"><div class="bar" id="bar"></div></div>
-
-  <section class="screen active" data-step="1">
-    <div class="eyebrow">01 / Identity</div>
-    <h1>Who are you becoming?</h1>
-    <p class="sub">Describe the person you want to become. Don't give me the version that sounds good. Give me the one you actually want.</p>
-    <textarea id="identity" placeholder="I am becoming someone who..."></textarea>
-    <div class="nav"><span></span><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="2">
-    <div class="eyebrow">02 / Distance</div>
-    <h1>How close do you feel to them?</h1>
-    <p class="sub">1 means you barely recognize this person in yourself. 10 means you're already living as them.</p>
-    <div class="scale" id="scale"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="3">
-    <div class="eyebrow">03 / Resistance</div>
-    <h1>What usually gets in the way?</h1>
-    <div class="choices" id="obstacles"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="4">
-    <div class="eyebrow">04 / Energy</div>
-    <h1>Where does your strongest energy go?</h1>
-    <p class="sub">Choose up to two.</p>
-    <div class="choices" id="energy"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="5">
-    <div class="eyebrow">05 / Direction</div>
-    <h1>When you feel a strong surge of energy, what do you do with it?</h1>
-    <div class="choices" id="response"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="6">
-    <div class="eyebrow">06 / Transformation</div>
-    <h1>If you actually became this person, what might you have to leave behind?</h1>
-    <div class="choices" id="cost"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="next()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="7">
-    <div class="eyebrow">07 / The Deeper Question</div>
-    <h1 id="adaptiveTitle"></h1>
-    <p class="sub" id="adaptiveSub"></p>
-    <div id="adaptiveArea"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="draw()">Reveal My Reading</button></div>
-  </section>
-
-  <section class="screen" data-step="8">
-    <div class="loading center">
-      <div class="eyebrow">The Draw</div>
-      <h1>Reading the pattern...</h1>
-      <p class="sub">The cards are being drawn at random. Your answers shape the interpretation — they do not choose the cards.</p>
-      <div class="spinner"></div>
-    </div>
-  </section>
-
-  <section class="screen" data-step="9">
-    <div class="eyebrow">Your Reading</div>
-    <h1 id="readingTitle"></h1>
-    <div class="cards" id="cards"></div>
-    <div class="reading" id="reading"></div>
-    <div class="nav"><span></span><button class="btn primary" onclick="showOffer()">Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="10">
-    <div class="eyebrow">The Decision</div>
-    <h1 id="twistTitle">What are you ready to do about it?</h1>
-    <div class="reading"><div class="twist" id="twist"></div></div>
-    <p class="sub" style="margin-top:28px">How seriously do you want to change this pattern?</p>
-    <div class="choices" id="seriousness"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="showIncome()" id="seriousBtn" disabled>Continue</button></div>
-  </section>
-
-  <section class="screen" data-step="11">
-    <div class="eyebrow">One Last Question</div>
-    <h1>What is your approximate personal annual income?</h1>
-    <p class="sub">This is only used to make the recommendation appropriate for where you are right now.</p>
-    <div class="choices" id="income"></div>
-    <div class="nav"><button class="btn" onclick="back()">Back</button><button class="btn primary" onclick="recommend()" id="incomeBtn" disabled>Show My Path</button></div>
-  </section>
-
-  <section class="screen" data-step="12">
-    <div class="eyebrow">Your Path</div>
-    <h1 id="recommendTitle"></h1>
-    <div class="recommend">
-      <div class="eyebrow">Recommended Next Step</div>
-      <h2 id="productName" style="font-weight:400;font-size:29px;margin:8px 0"></h2>
-      <div class="price" id="productPrice"></div>
-      <p id="productText"></p>
-      <button class="btn primary" onclick="continueToRecommendation()">Explore This Path</button>
-    </div>
-    <div class="extra-section" id="recommendExtras" style="display:none">
-      <h3 id="recommendExtrasTitle">From People Who've Taken the Next Step</h3>
-      <div id="meditationTestimonials">
-        <div class="testimonial"><div class="stars">★★★★★</div><p>"I cried listening to this meditation. Thank you!"</p><div class="name">— Anaya</div></div>
-        <div class="testimonial"><div class="stars">★★★★★</div><p>"I have been using the app and it's really cool so far. I love the meditation!"</p><div class="name">— S. Marxia</div></div>
-        <div class="testimonial"><div class="stars">★★★★★</div><p>"After following the meditation... it definitely works!"</p><div class="name">— Daniel</div></div>
-      </div>
-      <div class="bundle-card" id="meditationBundle"><h3>Want More Than One?</h3><p>Your identity evolves, and so do the patterns you encounter.<br><br>Save the experience and return whenever a new block appears.</p><button class="btn primary" onclick="window.location.href='https://whop.com/checkout/plan_T1i5TdWSBoPKU'">Get 3 — $12</button></div>
-    </div>
-    <p class="tiny">Your reading is complete. Choose the level of work that matches where you are.</p>
-    <div class="nav"><span></span><button class="btn" onclick="location.reload()">Start Again</button></div>
-  </section>
+<header class="top"><div class="brand"><span class="rockstar-star" aria-hidden="true"></span> THE <span class="diamond-word">ROCKSTAR</span> INITIATION <span class="rockstar-star" aria-hidden="true"></span></div></header>
+<main>
+<div class="wrap hero">
+<div class="sigil"><span class="rockstar-star" aria-hidden="true"></span></div><div class="eyebrow">A private artistic identity experience</div>
+<h1>Your Next Era <em>Begins With You.</em></h1>
+<p class="lead">You've outgrown the artist the world knows. It's time to become the one you know.</p>
+<p class="sub">A highly personalized, 30-day initiation for established artists ready to rediscover their original creative nature, construct their next persona, and introduce it to the world.</p>
+<!-- REPLACE APPLICATION_URL in the script at the bottom of this file -->
+<a class="cta" data-apply href="#application">Begin Your Application ↗</a><p class="micro">Application required · Limited private mentorship availability</p>
+<div class="video" role="img" aria-label="Video sales letter placeholder"><div class="play">▶</div><strong>THE <span class="diamond-word">ROCKSTAR</span> INITIATION</strong><small>Video presentation coming soon</small></div>
 </div>
-
+<section><div class="wrap"><div class="eyebrow center">The turning point</div><h2>What if your art no longer feels like <span class="accent">you?</span></h2><p class="intro">Maybe the image you built no longer fits. Maybe your next project calls for a different presence. Or maybe the version of you that made your earlier work is simply not the artist you are now.</p><div class="grid"><div class="card"><div class="num">01 / OUTGROWN</div><h3>You've outgrown your old image.</h3><p>Your creative instincts have evolved, but your public persona and work haven't caught up.</p></div><div class="card"><div class="num">02 / UNEXPRESSED</div><h3>You're holding something back.</h3><p>You're making art, but not fully expressing the vision, style, or character you feel drawn toward.</p></div><div class="card"><div class="num">03 / TRANSITION</div><h3>A new project needs a new era.</h3><p>An album, collection, performance, film, or creative launch is approaching. You want an identity worthy of it.</p></div><div class="card"><div class="num">04 / REINVENTION</div><h3>You want to be seen differently.</h3><p>Not through an artificial mask, but through a deliberate, more honest expression of who you're becoming.</p></div></div></div></section>
+<section><div class="wrap"><p class="statement">This isn't a branding package. It's an invitation to <em>become the artist</em> behind your next body of work.</p></div></section>
+<section><div class="wrap"><div class="eyebrow center">The method</div><h2>Five stages. One new era.</h2><p class="intro">A tarot-inspired process combining creative self-inquiry, persona design, practical behavioral changes, guided suggestion, and a deliberate public debut.</p><div class="stages">
+<div class="stage"><div class="roman">I</div><div><h3>The Fool — Remember</h3><p>Explore childhood memories, early fascinations, natural inclinations, and the creative impulses that existed before outside expectations shaped your expression.</p><span class="tag">Outcome: Your original creative profile</span></div></div>
+<div class="stage"><div class="roman">II</div><div><h3>The Persona — Create</h3><p>Use your discoveries to define the next artistic identity: its character, archetypes, values, visual language, and way of moving through the world. Name it if you choose; change that name as you evolve.</p><span class="tag">Outcome: Your Rockstar Persona Blueprint</span></div></div>
+<div class="stage"><div class="roman">III</div><div><h3>The Programming — Practice</h3><p>Choose three high-leverage changes: one behavior to stop, one to start, and one environment to change. Begin practicing your persona in the choices you make every day.</p><span class="tag">Outcome: Your three-change embodiment protocol</span></div></div>
+<div class="stage"><div class="roman">IV</div><div><h3>The Manifesto — Reinforce</h3><p>Collaboratively create an in-depth, personalized guided affirmation and visualization during your first session. Receive the recording to revisit each morning as a tool for reflection and mental rehearsal.</p><span class="tag">Outcome: Your personal audio manifesto</span></div></div>
+<div class="stage"><div class="roman">V</div><div><h3>The Liberation — Debut</h3><p>In week three, plan and execute a meaningful, high-visibility introduction of your new persona: a performance, visual reveal, creative statement, or other bold artistic act aligned with your goals.</p><span class="tag">Outcome: Your liberation initiation and integration</span></div></div>
+</div></div></section>
+<section><div class="wrap"><div class="eyebrow center">What you receive</div><h2>Not another course. <span class="accent">A private initiation.</span></h2><p class="intro">This is a hands-on collaboration built around your specific artistic vision—not a generic formula for becoming a rockstar.</p><div class="stack"><div class="center"><div class="pill">The complete experience</div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>90-Minute Private Initiation Session</b><span>Deep identity exploration, persona construction, three-change protocol, and live manifesto creation.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Three 30-Minute Private Follow-Ups</b><span>Weekly support, creative refinement, liberation preparation, and integration.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>The Fool's Profile + Rockstar Persona Blueprint</b><span>Your foundational tendencies, emerging archetypes, and deliberately crafted artistic identity.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Personalized Manifesto Recording</b><span>Your own guided affirmation and visualization to revisit daily.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Three High-Leverage Identity Changes</b><span>One thing to stop, one thing to start, and one environment to transform.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Liberation Initiation Plan</b><span>A tailored, high-visibility artistic debut in your third week.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>30 Days of Direct Private Communication</b><span>Asynchronous messaging for questions, progress updates, and feedback throughout the experience; not 24/7 live access.</span></div></div>
+<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Integration & Next-Era Direction</b><span>Review what changed and map the next steps for expressing your artistic identity.</span></div></div>
+</div></div></section>
+<section><div class="wrap"><div class="eyebrow center">The timeline</div><h2>Thirty days of becoming.</h2><div class="steps"><div class="step"><div class="eyebrow">Week 01</div><b>Awaken</b><p>90-minute initiation. Explore your origin, create the persona, establish your changes, and record your manifesto.</p></div><div class="step"><div class="eyebrow">Week 02</div><b>Embody</b><p>Practice the identity in daily life. Refine your approach with your first 30-minute follow-up.</p></div><div class="step"><div class="eyebrow">Week 03</div><b>Liberate</b><p>Prepare and execute your intentional public debut, with a 30-minute support session.</p></div></div><div class="card" style="margin-top:14px;text-align:center"><div class="eyebrow">Week 04</div><h3 style="margin:5px 0">Integrate</h3><p>Use your final 30-minute session to reflect, fine-tune your practices, and set the direction for your next era.</p></div></div></section>
+<section><div class="wrap"><div class="eyebrow center">The invitation</div><h2>This is for artists ready to <span class="accent">move.</span></h2><p class="intro">The private experience is designed for established artists with existing work, a meaningful creative direction, and the willingness to act—not just dream about a different identity.</p><div class="grid"><div class="card"><h3>For the artist who…</h3><p>Has an existing body of work, feels ready for a new creative era, welcomes honest self-exploration, and is prepared to take visible action.</p></div><div class="card"><h3>Not for the artist who…</h3><p>Wants guaranteed fame, a done-for-you marketing campaign, clinical therapy, or someone else to create their art for them.</p></div></div></div></section>
+<section><div class="wrap"><div class="eyebrow center">How to begin</div><h2>Start with the application.</h2><p class="intro">The application itself is an artistic identity experience. You'll describe the persona you're moving toward, explore a personalized tarot-inspired reading, and tell us how accurately it reflects you.</p><div class="steps"><div class="step"><div class="eyebrow">01 / APPLY</div><b>Reveal your direction</b><p>Share your artistic background, desired identity, and what you're ready to change.</p></div><div class="step"><div class="eyebrow">02 / REFLECT</div><b>Receive your reading</b><p>Explore your creative archetype and refine the interpretation with your own feedback.</p></div><div class="step"><div class="eyebrow">03 / NEXT STEP</div><b>Find your pathway</b><p>Based on your application, you may be invited to a private discovery call or offered a self-directed starting point.</p></div></div><p class="micro center" style="margin-top:22px">Submitting an application does not guarantee acceptance. A discovery call is an opportunity for both sides to assess fit.</p></div></section>
+<section><div class="wrap"><div class="eyebrow center">Questions</div><h2>Before you begin.</h2><div class="faq"><details><summary>Do I have to be a musician?</summary><p>No. This is for established artists across music, visual art, film, fashion, performance, and other creative disciplines. “Rockstar” describes a bold, deliberate creative identity—not a genre.</p></details><details><summary>Do I need to know my new persona already?</summary><p>No. You can begin with a feeling, a creative ambition, or a sense that your current expression no longer fits. The application and private process help you clarify it.</p></details><details><summary>What if my persona changes?</summary><p>That's expected. Your chosen persona name is optional and can evolve. The work is about intentional creative expression, not locking you into a permanent label.</p></details><details><summary>Is this hypnotherapy?</summary><p>The experience incorporates principles from hypnotherapy through personalized affirmations, guided visualization, and creative mental rehearsal. It is not clinical hypnotherapy, psychotherapy, or treatment for a mental health condition. If you have a mental health condition, seek care from a qualified healthcare professional.</p></details><details><summary>What happens after I apply?</summary><p>You'll receive a personalized reading and a next-step recommendation. Applicants who appear suited to private mentorship may be invited to book a discovery call. Other applicants may be offered a self-guided option.</p></details><details><summary>Is enrollment guaranteed?</summary><p>No. Private mentorship is limited to artists whose goals and readiness align with the experience.</p></details></div></div></section>
+<div class="end" id="application"><div class="wrap"><div class="sigil"><span class="rockstar-star" aria-hidden="true"></span></div><div class="eyebrow">Your next era is waiting</div><h2>Who are you <span class="accent">becoming?</span></h2><p class="intro">The first step isn't a purchase. It's an honest look at the artist you're ready to create as.</p><a class="cta" data-apply href="#application">Begin Your Application ↗</a><p class="micro">Free application and archetype reading · Private mentorship by invitation</p></div></div>
+</main><footer><strong><span class="rockstar-star" aria-hidden="true"></span> THE ROCKSTAR INITIATION <span class="rockstar-star" aria-hidden="true"></span></strong><br>Artistic identity • Deliberate creation • Your next era<br><span style="display:inline-block;margin-top:8px">© <span id="year"></span> The Rockstar Initiation</span></footer>
 <script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-function track(eventName, params={}){ try { gtag("event", eventName, {...params, funnel:"the_draw"}); } catch(e) {} }
+// SET YOUR EXISTING APPLICATION URL HERE WHEN READY.
+// Example: const APPLICATION_URL = 'https://your-app.example.com';
+const APPLICATION_URL = '';
+document.getElementById('year').textContent = new Date().getFullYear();
+document.querySelectorAll('[data-apply]').forEach(link => {
+  if (APPLICATION_URL.trim()) { link.href = APPLICATION_URL; link.target = '_self'; }
+  else { link.href = '#application'; link.addEventListener('click', (event) => { if (link.closest('#application')) {event.preventDefault(); alert('Application link coming soon. Add your application URL in index.html.');} }); }
+});
 </script>
-<script>
-const READING_API_URL = "https://tarot-relay.naturopathpain.workers.dev";
-const INITIATION_LANDING_URL = "https://magiguide.whop.site/";
-const SEXUAL_ALCHEMY_LANDING_URL = "https://sexual-alchemy-mp.whop.site/";
-
-const A={
-  identity:"",
-  gap:null,
-  obstacle:null,
-  energy:[],
-  response:null,
-  cost:null,
-  adaptive:"",
-  seriousness:null,
-  income:null,
-  pattern:null
-};
-
-const obstacles=[
- ["momentum","I lose momentum."],["scattered","I get distracted."],["criticism","I start doubting myself."],
- ["bind","I get pulled back by other people."],["fear","I become afraid of what might change."],
- ["habits","I fall back into old habits."],["unknown","I don't know what is stopping me."],["forward","I actually move forward."]
-];
-const energies=["Creation","Work / ambition","Love / relationships","Sexuality / desire","Spirituality","Learning","Exercise / body","Entertainment / stimulation","Worry / overthinking","Nowhere — I feel drained"];
-const responses=["Create","Work","Pursue something","Connect with someone","Exercise","Pursue sexual desire","Seek stimulation","Suppress it","It becomes scattered","I don't know"];
-const costs=["An old version of myself","Certain relationships","My family's expectations","My current environment","Comfort","Security","Old habits","Nothing — I'm ready","I don't know"];
-const seriousness=[["curious","I'm curious — mostly wanted to understand myself."],["ready","I'm ready to change — I want practical practice."],["committed","I'm committed — I'm ready to seriously work on this pattern."],["allin","I'm all in — I'm ready for deeper transformation."]];
-const incomes=[["low","Under $25,000"],["25","$25,000–$49,999"],["50","$50,000–$74,999"],["75","$75,000–$99,999"],["100","$100,000–$149,999"],["150","$150,000–$249,999"],["250","$250,000+"]];
-
-const arcana=[
-  ["0","The Fool","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/00_Fool.jpg"],
-  ["I","The Magician","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/01_Magician.jpg"],
-  ["II","The High Priestess","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/02_High_Priestess.jpg"],
-  ["III","The Empress","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/03_Empress.jpg"],
-  ["IV","The Emperor","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/04_Emperor.jpg"],
-  ["V","The Hierophant","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/05_Hierophant.jpg"],
-  ["VI","The Lovers","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/06_Lovers.jpg"],
-  ["VII","The Chariot","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/07_Chariot.jpg"],
-  ["VIII","Strength","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/08_Strength.jpg"],
-  ["IX","The Hermit","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/09_Hermit.jpg"],
-  ["X","Wheel of Fortune","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/10_Wheel_of_Fortune.jpg"],
-  ["XI","Justice","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/11_Justice.jpg"],
-  ["XII","The Hanged Man","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/12_Hanged_Man.jpg"],
-  ["XIII","Death","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/13_Death.jpg"],
-  ["XIV","Temperance","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/14_Temperance.jpg"],
-  ["XV","The Devil","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/15_Devil.jpg"],
-  ["XVI","The Tower","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/16_Tower.jpg"],
-  ["XVII","The Star","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/17_Star.jpg"],
-  ["XVIII","The Moon","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/18_Moon.jpg"],
-  ["XIX","The Sun","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/19_Sun.jpg"],
-  ["XX","Judgement","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/20_Judgement.jpg"],
-  ["XXI","The World","https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/21_World.jpg"]
-];
-
-const meanings={
-"The Fool":"new beginnings, risk, freedom, innocence, stepping beyond the known",
-"The Magician":"agency, skill, will, attention, turning possibility into action",
-"The High Priestess":"intuition, inner knowledge, mystery, listening before acting",
-"The Empress":"creation, embodiment, pleasure, nourishment, generative power",
-"The Emperor":"structure, authority, boundaries, disciplined leadership",
-"The Hierophant":"tradition, teaching, inherited systems, initiation",
-"The Lovers":"choice, values, attraction, alignment, relationship",
-"The Chariot":"direction, determination, momentum, mastery of opposing forces",
-"Strength":"self-command, courage, patience, working with instinct rather than against it",
-"The Hermit":"solitude, reflection, inner guidance, withdrawal from noise",
-"Wheel of Fortune":"cycles, change, timing, forces larger than the individual",
-"Justice":"truth, consequences, balance, responsibility",
-"The Hanged Man":"surrender, reversal, seeing differently, releasing control",
-"Death":"ending, transition, shedding an identity, irreversible change",
-"Temperance":"integration, balance, combination, measured transformation",
-"The Devil":"attachment, appetite, compulsion, material desire, unconscious binding",
-"The Tower":"disruption, revelation, collapse of a false structure",
-"The Star":"hope, renewal, authenticity, orientation toward a larger possibility",
-"The Moon":"uncertainty, projection, fear, subconscious material",
-"The Sun":"clarity, vitality, confidence, visibility, joy",
-"Judgement":"awakening, reckoning, answering a deeper calling",
-"The World":"completion, integration, embodiment, entering a new level"
-};
-
-function renderChoices(id,items,multi=false){
- const el=document.getElementById(id); el.innerHTML="";
- items.forEach(item=>{
-   const [value,label]=Array.isArray(item)?item:[item,item];
-   const b=document.createElement("button"); b.className="choice"; b.textContent=label;
-   b.onclick=()=>{
-     if(multi){
-       if(A.energy.includes(value)){A.energy=A.energy.filter(x=>x!==value);b.classList.remove("selected")}
-       else if(A.energy.length<2){A.energy.push(value);b.classList.add("selected")}
-     }else{
-       el.querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));
-       b.classList.add("selected");
-       A[id]=value;
-       // Enable the step-specific Continue button once a choice is made.
-       // These buttons start disabled intentionally so users cannot advance
-       // without answering the question.
-       if(id==="seriousness"){ track("seriousness_selected",{seriousness:value});
-         const btn=document.getElementById("seriousBtn");
-         if(btn) btn.disabled=false;
-       }
-       if(id==="income"){ track("income_selected");
-         const btn=document.getElementById("incomeBtn");
-         if(btn) btn.disabled=false;
-       }
-     }
-   };
-   el.appendChild(b);
- });
-}
-function setup(){
- renderChoices("obstacles",obstacles);
- document.querySelectorAll("#obstacles .choice").forEach((button,i)=>{
-   button.onclick=()=>{
-     document.querySelectorAll("#obstacles .choice").forEach(b=>b.classList.remove("selected"));
-     button.classList.add("selected");
-     A.obstacle=obstacles[i][0];
-   };
- });
- renderChoices("energy",energies.map(x=>[x,x]),true);
- renderChoices("response",responses.map(x=>[x,x]));
- renderChoices("cost",costs.map(x=>[x,x]));
- renderChoices("seriousness",seriousness);
- renderChoices("income",incomes);
- for(let i=1;i<=10;i++){
-   const b=document.createElement("button");b.textContent=i;
-   b.onclick=()=>{document.querySelectorAll("#scale button").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");A.gap=i};
-   document.getElementById("scale").appendChild(b);
- }
-}
-function screen(n){
- document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
- document.querySelector('[data-step="'+n+'"]').classList.add("active");
- document.getElementById("bar").style.width=Math.min(100,((n-1)/11)*100)+"%";
- window.scrollTo({top:0,behavior:"smooth"});
-}
-let step=1;
-function next(){
- if(step===1 && !document.getElementById("identity").value.trim())return alert("Tell me who you're becoming first.");
- if(step===2 && !A.gap)return alert("Choose a number from 1–10.");
- if(step===3 && !A.obstacle)return alert("Choose what usually gets in the way.");
- if(step===4 && A.energy.length===0)return alert("Choose at least one.");
- if(step===5 && !A.response)return alert("Choose what you usually do with the energy.");
- if(step===6 && !A.cost)return alert("Choose what you might have to leave behind.");
- if(step===7 && !A.adaptive)return alert("Answer the deeper question.");
- if(step===1){A.identity=document.getElementById("identity").value.trim();track("identity_completed");}
- if(step===2)track("distance_completed",{identity_gap:A.gap});
- if(step===3)track("resistance_completed",{obstacle:A.obstacle});
- if(step===4)track("energy_completed",{energy:A.energy.join("|")});
- if(step===5)track("direction_completed",{direction:A.response});
- if(step===6)track("transformation_completed",{cost:A.cost});
- if(step===6)setAdaptive();
- step++;screen(step);
-}
-function back(){if(step>1){step--;screen(step)}}
-
-function determinePattern(){
- const o=A.obstacle;
- // Diagnose the relationship with desire/energy across the whole questionnaire.
- let sexual=0;
- if(A.energy.includes("Sexuality / desire")) sexual+=4;
- if(A.response==="Pursue sexual desire") sexual+=4;
- if(A.response==="Suppress it") sexual+=3;
- if(A.response==="Seek stimulation") sexual+=2;
- if(A.response==="It becomes scattered") sexual+=2;
- if(A.energy.includes("Entertainment / stimulation")) sexual+=1;
- if(A.energy.includes("Worry / overthinking")) sexual+=1;
- if(A.energy.includes("Creation")||A.energy.includes("Work / ambition")) sexual+=1;
- if(A.cost==="Old habits") sexual+=1;
- if(A.cost==="Comfort") sexual+=1;
- if(A.cost==="Security") sexual+=1;
- if(A.obstacle==="habits") sexual+=2;
- if(A.obstacle==="scattered") sexual+=1;
- if(A.obstacle==="momentum") sexual+=1;
- if(sexual>=5)return "Sexual Energy";
- if(o==="bind")return "Soul Bind";
- if(o==="criticism")return "Self-Criticism";
- if(o==="habits")return "Energy Leakage";
- if(o==="forward")return "Momentum";
- if(o==="fear")return "Identity Vacuum";
- if(o==="scattered")return "Inaction & Scattered Energy";
- if(o==="unknown")return "Identity Vacuum";
- return o==="momentum"?"Inaction & Scattered Energy":"False Beliefs About Possibility";
-}
-function setAdaptive(){
- A.pattern=determinePattern();
- const title=document.getElementById("adaptiveTitle"),sub=document.getElementById("adaptiveSub"),area=document.getElementById("adaptiveArea");
- area.innerHTML="";
- if(A.pattern==="Identity Vacuum"){
-   title.textContent="How much of your current identity feels chosen by you?";
-   sub.textContent="1 means mostly inherited. 10 means deeply chosen.";
-   const s=document.createElement("div");s.className="scale";
-   for(let i=1;i<=10;i++){let b=document.createElement("button");b.textContent=i;b.onclick=()=>{A.adaptive=String(i);s.querySelectorAll("button").forEach(x=>x.classList.remove("selected"));b.classList.add("selected")};s.appendChild(b)} area.appendChild(s);
- }else if(A.pattern==="Soul Bind"){
-   title.textContent="Who or what has the strongest influence over the person you're allowed to be?";
-   sub.textContent="Choose the strongest influence.";
-   renderAdaptiveChoices(["Family","Partner","Friends","Career","Culture","Money","Environment","My past","Something else"]);
- }else if(A.pattern==="Inaction & Scattered Energy"||A.pattern==="Momentum"){
-   title.textContent="What's the thing you keep saying you'll do, but haven't consistently done?";
-   sub.textContent="Be specific.";
-   area.innerHTML='<textarea id="adaptiveText" placeholder="I keep saying I will..."></textarea>';
- }else if(A.pattern==="Self-Criticism"){
-   title.textContent="What do you say to yourself when you fall short of your own expectations?";
-   sub.textContent="Write the thought you actually have.";
-   area.innerHTML='<textarea id="adaptiveText" placeholder="I tell myself..."></textarea>';
- }else if(A.pattern==="False Beliefs About Possibility"){
-   title.textContent="What's the biggest thing you secretly wonder might be impossible for you?";
-   sub.textContent="Don't censor the answer.";
-   area.innerHTML='<textarea id="adaptiveText" placeholder="Part of me wonders if..."></textarea>';
- }else if(A.pattern==="Energy Leakage"){
-   title.textContent="What drains the energy you most wish you could use elsewhere?";
-   sub.textContent="Think habits, people, attention, or environments.";
-   area.innerHTML='<textarea id="adaptiveText" placeholder="Most of my energy gets drained by..."></textarea>';
- }else{
-   title.textContent="When desire gets intense, what happens next?";
-   sub.textContent="This is not about judging the desire. It is about understanding where the current tends to go.";
-   renderAdaptiveChoices(["I act on it immediately","I suppress or fight it","I turn it into stimulation and distraction","I can redirect it into creation or work","It depends — I don't have a consistent direction"]);
- }
-}
-function renderAdaptiveChoices(items){
- const area=document.getElementById("adaptiveArea");area.innerHTML='<div class="choices"></div>';
- items.forEach(x=>{let b=document.createElement("button");b.className="choice";b.textContent=x;b.onclick=()=>{area.querySelectorAll("button").forEach(y=>y.classList.remove("selected"));b.classList.add("selected");A.adaptive=x};area.firstChild.appendChild(b)});
-}
-async function draw(){
- const adaptiveText=document.getElementById("adaptiveText");
- if(adaptiveText) A.adaptive=adaptiveText.value.trim();
- if(!A.adaptive)return alert("Answer the deeper question.");
- track("deeper_question_completed",{pattern:A.pattern});
- step=8;screen(8);
- try{
-   track("reading_started",{pattern:A.pattern});
-   const cards=await buildReading();
-   track("reading_revealed",{pattern:A.pattern});
-   step=9;screen(9);
- }catch(err){
-   console.error(err);
-   alert("The reading couldn't be generated. Check your connection and try again.");
-   step=7;screen(7);
- }
-}
-function randomCards(){
- let pool=[...arcana],out=[];
- for(let i=0;i<5;i++){let idx=Math.floor(Math.random()*pool.length);out.push(pool.splice(idx,1)[0])}
- return out;
-}
-function escapeHtml(value){
- return String(value ?? "").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-}
-function readingPrompt(cards){
- const cardList=cards.map((c,i)=>`${i+1}. ${c[1]} — ${c[0]} — ${meanings[c[1]]}`).join("\n");
- const energy=A.energy.join(", ") || "not specified";
- return `You are the reading engine for The Magician's Path. Give a personalized tarot reading using the user's diagnostic answers as context and the randomly drawn cards as the symbolic framework. The questionnaire diagnoses patterns; it does not determine which cards were drawn. Do not pretend the cards were selected because they match the diagnosis.\n\nVOICE: direct, warm, spiritually serious, human. Use contractions. Vary sentence length. Avoid generic horoscope language and empty spiritual clichés. Never use gendered pronouns for the person; speak directly as “you.” Do not claim supernatural certainty or make medical/psychological diagnoses. Tarot is a reflective symbolic tool.\n\nIDENTITY THEY WANT TO BECOME: ${A.identity}\nIDENTITY GAP (1-10): ${A.gap}\nPRIMARY PATTERN: ${A.pattern}\nMAIN OBSTACLE: ${A.obstacle}\nSTRONGEST ENERGY DESTINATIONS: ${energy}\nWHAT THEY DO WITH A SURGE OF ENERGY: ${A.response}\nWHAT THEY MAY HAVE TO LEAVE BEHIND: ${A.cost}\nADAPTIVE ANSWER: ${A.adaptive}\n\nFIVE CARDS, IN ORDER: THE SELF, THE MIRROR, THE SHADOW, THE BINDING, THE PATH\n${cardList}\n\nWrite a COMPLETE personalized reading, around 350-500 words total. This must NOT be one generic paragraph. Treat the five positions as five distinct interpretive movements, while still making the whole reading feel cohesive. Give each position real interpretive weight, with THE SHADOW receiving the most attention. Explicitly connect the cards to the person's stated identity and diagnostic pattern. Do not invent facts about the person. Tarot is symbolic reflection, not supernatural certainty. End the main reading with a concrete direction they can practice. Also return a short 1-2 sentence knife twist that makes the central pattern emotionally clear without shaming them.\n\nReturn ONLY valid JSON in this exact shape:\n{\n  "sections": {\n    "self": "2-4 paragraphs interpreting The Self card in relation to who they are becoming",\n    "mirror": "2-4 paragraphs interpreting The Mirror card in relation to their current identity and answers",\n    "shadow": "3-5 paragraphs interpreting The Shadow card as the central obstruction, explicitly tying it to the primary pattern",\n    "binding": "2-4 paragraphs interpreting The Binding card and what keeps the pattern alive",\n    "path": "2-4 paragraphs interpreting The Path card and giving a concrete next direction"\n  },\n  "knifeTwist": "..."\n}`;
-}
-async function generateApiReading(cards){
- const response=await fetch(READING_API_URL,{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1800,messages:[{role:"user",content:readingPrompt(cards)}]})
- });
- if(!response.ok) throw new Error(`Reading API returned ${response.status}`);
- const data=await response.json();
- const text=(data.content||[]).map(x=>x.text||"").join("").replace(/```json|```/g,"").trim();
- const parsed=JSON.parse(text);
- if(!parsed.sections || !parsed.sections.self || !parsed.sections.mirror || !parsed.sections.shadow || !parsed.sections.binding || !parsed.sections.path){
-   throw new Error("Reading API returned an incomplete reading");
- }
- return parsed;
-}
-async function buildReading(){
- const cards=randomCards(),names=["THE SELF","THE MIRROR","THE SHADOW","THE BINDING","THE PATH"];
- document.getElementById("readingTitle").textContent=A.identity;
- const box=document.getElementById("cards");box.innerHTML="";
- cards.forEach((c,i)=>{box.innerHTML+=`<div class="card" style="animation-delay:${i*110}ms"><div class="position">${names[i]}</div><img src="${c[2]}" alt="${escapeHtml(c[1])} — Rider-Waite-Smith Major Arcana" loading="eager" referrerpolicy="no-referrer"><div class="name">${escapeHtml(c[1])}</div><div class="roman">${escapeHtml(c[0])}</div></div>`});
- document.querySelectorAll(".source-note").forEach(el=>el.remove());
- box.insertAdjacentHTML("afterend",'<div class="source-note">Card artwork: original Rider-Waite-Smith Major Arcana, illustrated by Pamela Colman Smith; public-domain source. <a href="https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck" target="_blank" rel="noopener">View source</a></div>');
- const result=await generateApiReading(cards);
- const sectionData=[
-   ["The Self",cards[0][1],result.sections.self],
-   ["The Mirror",cards[1][1],result.sections.mirror],
-   ["The Shadow",cards[2][1],result.sections.shadow],
-   ["The Binding",cards[3][1],result.sections.binding],
-   ["The Path",cards[4][1],result.sections.path]
- ];
- const html=sectionData.map(([position,card,text])=>{
-   const paragraphs=String(text).split(/\n\s*\n/).map(x=>`<p>${escapeHtml(x).replace(/\n/g,"<br>")}</p>`).join("");
-   return `<section class="reading-section"><h3>${position} — ${escapeHtml(card)}</h3>${paragraphs}</section>`;
- }).join("");
- document.getElementById("reading").innerHTML=html;
- document.getElementById("twist").textContent=result.knifeTwist || twistFor(A.pattern);
- return cards;
-}
-function continueToRecommendation(){
- const product=document.getElementById("productName").textContent;
- track("offer_clicked",{product:product});
- if(product==="The Magician's Initiation"){track("initiation_offer_clicked");window.location.href=INITIATION_LANDING_URL;}
- else if(product==="Sexual Alchemy"){track("sexual_alchemy_offer_clicked");window.location.href=SEXUAL_ALCHEMY_LANDING_URL;}
- else {
-   // Meditation stays inside The Draw. In the production app this is where the
-   // $8.88 single / $12 bundle unlock flow opens. The sandbox keeps this local.
-   track("meditation_offer_clicked");
-   showMeditationTest();
- }
-}
-function showMeditationTest(){
- document.getElementById("recommendTitle").textContent="Start by changing the state you return to.";
- document.getElementById("productName").textContent="Identity Reset Meditation";
- document.getElementById("productPrice").textContent="$8.88";
- document.getElementById("productText").textContent="Your reading points to a pattern worth working with directly. In the full app, this step keeps you inside The Draw: choose the $8.88 meditation or the $12 three-meditation bundle, then continue deeper when you're ready.";
- document.querySelector('#recommend .btn.primary').textContent="Continue to Meditation";
- document.querySelector('.tiny').textContent="TEST MODE — meditation playback and checkout are represented here; production uses the existing in-app unlock flow.";
-}
-function twistFor(p){
- const x={
- "Identity Vacuum":"The danger is becoming so good at being who other people expect that you eventually forget which parts of you were actually chosen.",
- "Soul Bind":"You can love people and still outgrow the version of yourself that keeps them comfortable.",
- "Inaction & Scattered Energy":"Every day you postpone the thing you say matters reinforces a competing identity: the person who intends to do it instead of the person who does.",
- "Self-Criticism":"If every attempt to grow becomes another reason to attack yourself, eventually self-protection will disguise itself as self-improvement.",
- "False Beliefs About Possibility":"Calling something unrealistic before you test it can feel like wisdom, but sometimes it is simply a belief that has never been challenged.",
- "Energy Leakage":"The uncomfortable question is whether you're giving your strongest energy to the things that build your desired life—or merely to the things that consume it.",
- "Energy Sexuality":"The problem isn't that you have too much desire. The question is whether your strongest current is choosing its destination for you.",
- "Momentum":"You may not need another insight. You may need to prove to yourself, repeatedly, that you can keep a promise to the person you're becoming."
- };return x[p]||x["Identity Vacuum"];
-}
-function showOffer(){track("reading_continued",{pattern:A.pattern});step=10;screen(10);renderChoices("seriousness",seriousness)}
-function showIncome(){
- if(!A.seriousness)return alert("Choose how seriously you want to work on this.");
- step=11;screen(11);renderChoices("income",incomes)
-}
-function recommend(){
- if(!A.income)return alert("Choose an income range.");
- step=12;screen(12);
- const deep=A.seriousness==="committed"||A.seriousness==="allin";
- let product,title,text;
- if(A.pattern==="Sexual Energy"||A.pattern==="Energy Sexuality"||A.pattern==="Sexual Alchemy"){
-   if(deep){
-     product="Sexual Alchemy";
-     title="You're ready to direct the deepest current.";
-     text="Your reading points toward a deeper question: what happens when your strongest current is deliberately given a destination? Sexual Alchemy is the advanced system for learning to work with desire as a source of direction and creative force — with a structured practice for understanding your patterns, containing the impulse, redirecting the current, and turning intensity into deliberate action, creation, and pursuit.";
-   }else{
-     product="Identity Reset Meditation";
-     title="Start by changing the state you return to.";
-     text="You don't need to force the deepest work before you're ready for it. Start by working directly with the pattern your reading revealed.";
-   }
- }else if(deep){
-   product="The Magician's Initiation";
-   title="You're ready for deliberate identity work.";
-   text="Your reading points to a pattern worth working with directly. The Magician's Initiation gives you a structured foundation for identity, thought, action, archetype work, and momentum — so the person you named has a practical system to start becoming them.";
- }else{
-   product="Identity Reset Meditation";
-   title="Start by changing the state you return to.";
-   text="You don't need to force the whole transformation at once. Start by working directly with the pattern your reading revealed, then keep building from there.";
- }
- track("recommendation_shown",{product:product,pattern:A.pattern,seriousness:A.seriousness});
- document.getElementById("recommendTitle").textContent=title;
- document.getElementById("productName").textContent=product;
- const priceEl=document.getElementById("productPrice");
- priceEl.textContent=product==="Identity Reset Meditation"?"$8.88":"";
- priceEl.style.display=product==="Identity Reset Meditation"?"block":"none";
- document.getElementById("productText").textContent=text;
- const button=document.querySelector('#recommend .btn.primary');
- button.textContent=product==="Identity Reset Meditation"?"Continue to Meditation":"Explore This Path";
- const extras=document.getElementById("recommendExtras");
- if(extras){
-   // These testimonials are specifically for the meditation experience.
-   // Never display them on Initiation or Sexual Alchemy recommendations.
-   extras.style.display=product==="Identity Reset Meditation"?"block":"none";
- }
-}
-
-
-(function(){
-  const t=document.getElementById("ambientTone"),b=document.getElementById("toneToggle");
-  if(!t||!b)return;
-  t.volume=.18;
-  let on=true;
-  let started=false;
-  async function play(){
-    if(!on||!t.paused)return;
-    try{
-      await t.play();
-      started=true;
-    }catch(e){
-      // Browsers may block unmuted autoplay until the visitor interacts with the page.
-      started=false;
-    }
-  }
-  // Try immediately. If autoplay is blocked, the first real interaction starts it.
-  t.addEventListener("canplay",play,{once:false});
-  ["pointerdown","keydown","touchstart"].forEach(e=>window.addEventListener(e,()=>{ if(on) play(); },{passive:true}));
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&on)play();});
-  b.onclick=async()=>{
-    if(on){
-      // The click itself is a user gesture, so playback is allowed here.
-      await play();
-      b.textContent=started?"432 Hz · On":"432 Hz · On · Tap to play";
-      b.setAttribute("aria-pressed","true");
-    }else{
-      t.pause();
-      b.textContent="432 Hz · Off";
-      b.setAttribute("aria-pressed","false");
-    }
-  };
-  play();
-})();
-
-setup();
-track("draw_started");
-</script>
-</body>
-</html>
+</body></html>
