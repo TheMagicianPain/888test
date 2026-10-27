@@ -700,7 +700,9 @@ async function submitArtistApplication(){
   // The Edge Function writes with server-only credentials and never exposes them in HTML.
   if(!CONFIG.applicationEndpoint){showError('Application submission is temporarily unavailable. Please try again later.');return false;}
   try{
-    const res=await fetch(CONFIG.applicationEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(submission)});
+    // Send a CORS-simple POST to avoid the failing OPTIONS preflight.
+    // Supabase Edge Function reads req.text() and parses JSON, so text/plain is valid.
+    const res=await fetch(CONFIG.applicationEndpoint,{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(submission)});
     if(!res.ok){const detail=await res.json().catch(()=>null);throw new Error(detail?.error||('Submission HTTP '+res.status));}
     return true;
   }catch(err){console.error('Rockstar application submission:',CONFIG.applicationEndpoint,err);showError('Application could not be delivered. Please try again. If this persists, the submission service may be blocking the browser request ('+err.message+').');return false;}
