@@ -1,83 +1,502 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#070b0d">
-<meta name="description" content="The Rockstar Initiation: a private 30-day artistic identity experience for established artists entering their next era.">
-<title>The Rockstar Initiation — Your Next Era Begins With You</title>
-<style>
-:root{--bg:#070b0d;--panel:#10191b;--panel2:#0d1315;--text:#f4f5f1;--muted:#a6b2b0;--teal:#0d9488;--bright:#17bfa9;--border:#25403e;--gold:#D4AF37}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}body:before{content:"";position:absolute;top:0;left:0;right:0;height:860px;pointer-events:none;background:radial-gradient(ellipse at 50% 15%,#0d948823,transparent 63%)}a{color:inherit}.wrap{width:min(100% - 40px,940px);margin:auto}.top{height:76px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #ffffff12;position:relative;z-index:1}.brand{font-size:12px;letter-spacing:.34em;font-weight:800;color:#d6f6ed}.brand span{color:var(--gold)}.hero{text-align:center;padding:100px 0 70px;position:relative}.eyebrow{color:var(--bright);font-size:11px;font-weight:800;letter-spacing:.29em;text-transform:uppercase}.sigil{margin-bottom:22px;display:flex;justify-content:center}.rockstar-star{display:inline-block;width:1em;height:1em;background:var(--gold);clip-path:polygon(50.00% 1.00%, 57.27% 32.45%, 84.65% 15.35%, 67.55% 42.73%, 99.00% 50.00%, 67.55% 57.27%, 84.65% 84.65%, 57.27% 67.55%, 50.00% 99.00%, 42.73% 67.55%, 15.35% 84.65%, 32.45% 57.27%, 1.00% 50.00%, 32.45% 42.73%, 15.35% 15.35%, 42.73% 32.45%);vertical-align:-.12em;flex-shrink:0}.sigil .rockstar-star{width:48px;height:48px}.brand .rockstar-star{width:12px;height:12px;vertical-align:0}.hero h1,h2,h3{font-family:Georgia,'Times New Roman',serif;font-weight:500}.hero h1{font-size:clamp(51px,9vw,100px);letter-spacing:-.065em;line-height:.99;margin:18px auto 22px;max-width:1000px}.hero h1 em{font-style:normal;color:var(--bright)}.lead{font-size:clamp(18px,2.5vw,23px);line-height:1.5;max-width:700px;margin:0 auto 19px;color:#e4ebe7}.sub{color:var(--muted);max-width:690px;margin:0 auto 32px}.cta{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:60px;padding:16px 34px;background:linear-gradient(110deg,var(--teal),var(--bright));border:1px solid #4be0c4;color:#041613;text-decoration:none;font-size:12px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;box-shadow:0 0 30px #0d94882c;transition:transform .2s,box-shadow .2s}.cta:hover{transform:translateY(-2px);box-shadow:0 0 40px #17bfa944}.micro{font-size:12px;color:#8c9e9a;margin-top:14px}.video{aspect-ratio:16/9;width:min(100%,820px);margin:50px auto 0;border:1px solid #39625a;background:radial-gradient(circle at 50% 45%,#17433e,#091012 62%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;position:relative;box-shadow:0 18px 70px #0009}.video:before,.video:after{content:"";position:absolute;background:var(--gold);width:18px;height:18px;clip-path:polygon(50.00% 1.00%, 57.27% 32.45%, 84.65% 15.35%, 67.55% 42.73%, 99.00% 50.00%, 67.55% 57.27%, 84.65% 84.65%, 57.27% 67.55%, 50.00% 99.00%, 42.73% 67.55%, 15.35% 84.65%, 32.45% 57.27%, 1.00% 50.00%, 32.45% 42.73%, 15.35% 15.35%, 42.73% 32.45%)}.video:before{top:24px;left:24px}.video:after{bottom:24px;right:24px}.play{border:1px solid #9bd6c9;border-radius:100%;width:80px;height:80px;display:grid;place-items:center;font-size:25px;color:var(--bright);padding-left:5px}.video strong{font-size:13px;letter-spacing:.2em}.video small{font-size:12px;color:var(--muted)}section{padding:85px 0;border-top:1px solid #ffffff12}section h2{text-align:center;font-size:clamp(34px,5.5vw,58px);line-height:1.13;letter-spacing:-.035em;margin:12px auto 20px;max-width:780px}section .intro{text-align:center;max-width:690px;margin:0 auto 45px;color:var(--muted)}.center{text-align:center}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.card{border:1px solid var(--border);background:linear-gradient(140deg,#132022,#0a1012);padding:29px}.card .num{font-size:11px;letter-spacing:.2em;color:var(--bright);font-weight:800}.card h3{font-size:28px;margin:8px 0 9px}.card p{margin:0;color:#b6c3bf;font-size:15px}.full{grid-column:1/-1}.statement{max-width:800px;margin:0 auto;text-align:center;font-family:Georgia,serif;font-size:clamp(24px,4vw,39px);line-height:1.4}.statement em{color:var(--bright);font-style:normal}.stages{display:grid;gap:12px}.stage{display:grid;grid-template-columns:75px 1fr;gap:18px;border:1px solid var(--border);padding:24px;background:var(--panel2)}.roman{font-family:Georgia,serif;font-size:33px;color:var(--bright)}.stage h3{font-size:27px;margin:0 0 5px}.stage p{margin:0;color:var(--muted)}.tag{display:inline-block;margin-top:12px;font-size:11px;letter-spacing:.09em;color:var(--gold);text-transform:uppercase}.stack{border:1px solid #416b63;background:linear-gradient(180deg,#142624,#0a1011);padding:clamp(24px,5vw,55px);max-width:800px;margin:auto}.stack-row{display:flex;gap:15px;align-items:flex-start;padding:15px 0;border-bottom:1px solid #ffffff17}.stack-row:last-child{border-bottom:0}.check{color:var(--bright);font-weight:900}.stack-row b{display:block}.stack-row span{font-size:13px;color:var(--muted)}.pill{border:1px solid #47675e;display:inline-block;padding:8px 17px;color:var(--gold);font-size:11px;letter-spacing:.17em;text-transform:uppercase;margin-bottom:16px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.step{padding:26px;border:1px solid var(--border);background:#0f191a}.step b{font-family:Georgia,serif;font-size:24px}.step p{color:var(--muted);font-size:14px}.faq{max-width:800px;margin:auto}details{border-bottom:1px solid var(--border);padding:19px 0}summary{cursor:pointer;font-weight:650;list-style:none;display:flex;justify-content:space-between;gap:15px}summary:after{content:'+';color:var(--bright)}details[open] summary:after{content:'−'}details p{color:var(--muted);margin:10px 0 0}.end{text-align:center;padding:105px 0;background:radial-gradient(ellipse at center,#0d948820,transparent 65%)}footer{text-align:center;padding:35px 15px;border-top:1px solid #ffffff12;color:#83938e;font-size:12px}footer strong{color:#c7ddd5}.accent{color:var(--bright)}@media(max-width:650px){.hero{padding:65px 0 55px}.grid,.steps{grid-template-columns:1fr}.stage{grid-template-columns:45px 1fr;gap:10px;padding:18px}.roman{font-size:24px}.stage h3{font-size:23px}.video{margin-top:32px}.wrap{width:min(100% - 30px,940px)}section{padding:65px 0}.cta{width:100%;padding:15px}}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Rockstar Initiation — Application</title><meta name="theme-color" content="#0D9488"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,400&display=swap"><style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .unlock-btn {
+          position: relative;
+          flex: 1 1 160px;
+          max-width: 220px;
+          padding: 22px 16px;
+          border-radius: 22px;
+          border: none;
+          background: var(--card-bg);
+          box-shadow: var(--card-shadow);
+          color: var(--text);
+          cursor: pointer;
+          font-family: inherit;
+          transition: transform 0.15s ease;
+        }
+        .unlock-btn:active { transform: scale(0.97); }
+        .unlock-btn-bundle { box-shadow: var(--card-shadow), 0 0 0 2px rgba(13,148,136,0.5) inset; }
+        .unlock-btn-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #0D9488; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 999px; }
+        .unlock-btn-price { font-size: 26px; font-weight: 700; }
+        .unlock-btn-label { font-size: 13px; color: var(--meta); margin-top: 4px; }
+        .reading-row { text-align: left; background: var(--card-bg); box-shadow: var(--card-shadow); border: none; border-radius: 14px; padding: 14px 18px; color: var(--text); cursor: pointer; font-family: inherit; display: flex; flex-direction: column; gap: 4px; transition: transform 0.15s ease; }
+        .reading-row:active { transform: scale(0.98); }
+        .reading-row-goal { font-weight: 600; }
+        .reading-row-meta { font-size: 0.8rem; color: var(--meta); }
 
-/* Diamond-encrusted treatment: fixed letterforms and star silhouettes; only reflected light moves. */
-:root{--diamond-base:#d4af37;--diamond-light:#fffdf2;--diamond-ice:#e7faff}
-@keyframes diamondGlint{0%{background-position:0% 0%,20% 10%,100% 30%,0% 50%}50%{background-position:100% 85%,80% 90%,0% 65%,100% 50%}100%{background-position:0% 0%,20% 10%,100% 30%,0% 50%}}
-/* Layered pinpoint facets with intermittent silver-white flashes over warm gold. */
-.rockstar-star,.brand span.diamond-word,.video .diamond-word{
- background-color:var(--diamond-base);
- background-image:
- radial-gradient(circle at center,rgba(255,255,255,1) 0 1px,rgba(255,255,255,.7) 1.2px,transparent 2.5px),
- radial-gradient(circle at center,#fff 0 .7px,#dff7ff 1px,transparent 2px),
- repeating-conic-gradient(from 22deg at 50% 50%,#f9f5da 0deg 16deg,#aa7c1f 19deg 31deg,#fffce9 35deg 42deg,#d1a43d 45deg 60deg),
- linear-gradient(115deg,#8d6419,#fff2a0 24%,#fff 33%,#b78522 46%,#f9df78 70%,#926a22);
- background-size:19px 23px,31px 29px,9px 9px,220% 100%;
- animation:diamondGlint 9s ease-in-out infinite;
-}
-.brand span.diamond-word,.video .diamond-word{
- color:transparent;
- -webkit-background-clip:text;
- background-clip:text;
- -webkit-text-fill-color:transparent;
- text-shadow:none;
-}
-.rockstar-star{filter:drop-shadow(0 0 3px #e9cb76a0)}
-@media(prefers-reduced-motion:reduce){.rockstar-star,.brand span.diamond-word,.video .diamond-word{animation:none}}
-</style>
-</head>
-<body>
-<header class="top"><div class="brand"><span class="rockstar-star" aria-hidden="true"></span> THE <span class="diamond-word">ROCKSTAR</span> INITIATION <span class="rockstar-star" aria-hidden="true"></span></div></header>
-<main>
-<div class="wrap hero">
-<div class="sigil"><span class="rockstar-star" aria-hidden="true"></span></div><div class="eyebrow">A private artistic identity experience</div>
-<h1>Your Next Era <em>Begins With You.</em></h1>
-<p class="lead">You've outgrown the artist the world knows. It's time to become the one you know.</p>
-<p class="sub">A highly personalized, 30-day initiation for established artists ready to rediscover their original creative nature, construct their next persona, and introduce it to the world.</p>
-<!-- REPLACE APPLICATION_URL in the script at the bottom of this file -->
-<a class="cta" data-apply href="#application">Begin Your Application ↗</a><p class="micro">Application required · Limited private mentorship availability</p>
-<div class="video" role="img" aria-label="Video sales letter placeholder"><div class="play">▶</div><strong>THE <span class="diamond-word">ROCKSTAR</span> INITIATION</strong><small>Video presentation coming soon</small></div>
-</div>
-<section><div class="wrap"><div class="eyebrow center">The turning point</div><h2>What if your art no longer feels like <span class="accent">you?</span></h2><p class="intro">Maybe the image you built no longer fits. Maybe your next project calls for a different presence. Or maybe the version of you that made your earlier work is simply not the artist you are now.</p><div class="grid"><div class="card"><div class="num">01 / OUTGROWN</div><h3>You've outgrown your old image.</h3><p>Your creative instincts have evolved, but your public persona and work haven't caught up.</p></div><div class="card"><div class="num">02 / UNEXPRESSED</div><h3>You're holding something back.</h3><p>You're making art, but not fully expressing the vision, style, or character you feel drawn toward.</p></div><div class="card"><div class="num">03 / TRANSITION</div><h3>A new project needs a new era.</h3><p>An album, collection, performance, film, or creative launch is approaching. You want an identity worthy of it.</p></div><div class="card"><div class="num">04 / REINVENTION</div><h3>You want to be seen differently.</h3><p>Not through an artificial mask, but through a deliberate, more honest expression of who you're becoming.</p></div></div></div></section>
-<section><div class="wrap"><p class="statement">This isn't a branding package. It's an invitation to <em>become the artist</em> behind your next body of work.</p></div></section>
-<section><div class="wrap"><div class="eyebrow center">The method</div><h2>Five stages. One new era.</h2><p class="intro">A tarot-inspired process combining creative self-inquiry, persona design, practical behavioral changes, guided suggestion, and a deliberate public debut.</p><div class="stages">
-<div class="stage"><div class="roman">I</div><div><h3>The Fool — Remember</h3><p>Explore childhood memories, early fascinations, natural inclinations, and the creative impulses that existed before outside expectations shaped your expression.</p><span class="tag">Outcome: Your original creative profile</span></div></div>
-<div class="stage"><div class="roman">II</div><div><h3>The Persona — Create</h3><p>Use your discoveries to define the next artistic identity: its character, archetypes, values, visual language, and way of moving through the world. Name it if you choose; change that name as you evolve.</p><span class="tag">Outcome: Your Rockstar Persona Blueprint</span></div></div>
-<div class="stage"><div class="roman">III</div><div><h3>The Programming — Practice</h3><p>Choose three high-leverage changes: one behavior to stop, one to start, and one environment to change. Begin practicing your persona in the choices you make every day.</p><span class="tag">Outcome: Your three-change embodiment protocol</span></div></div>
-<div class="stage"><div class="roman">IV</div><div><h3>The Manifesto — Reinforce</h3><p>Collaboratively create an in-depth, personalized guided affirmation and visualization during your first session. Receive the recording to revisit each morning as a tool for reflection and mental rehearsal.</p><span class="tag">Outcome: Your personal audio manifesto</span></div></div>
-<div class="stage"><div class="roman">V</div><div><h3>The Liberation — Debut</h3><p>In week three, plan and execute a meaningful, high-visibility introduction of your new persona: a performance, visual reveal, creative statement, or other bold artistic act aligned with your goals.</p><span class="tag">Outcome: Your liberation initiation and integration</span></div></div>
-</div></div></section>
-<section><div class="wrap"><div class="eyebrow center">What you receive</div><h2>Not another course. <span class="accent">A private initiation.</span></h2><p class="intro">This is a hands-on collaboration built around your specific artistic vision—not a generic formula for becoming a rockstar.</p><div class="stack"><div class="center"><div class="pill">The complete experience</div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>90-Minute Private Initiation Session</b><span>Deep identity exploration, persona construction, three-change protocol, and live manifesto creation.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Three 30-Minute Private Follow-Ups</b><span>Weekly support, creative refinement, liberation preparation, and integration.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>The Fool's Profile + Rockstar Persona Blueprint</b><span>Your foundational tendencies, emerging archetypes, and deliberately crafted artistic identity.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Personalized Manifesto Recording</b><span>Your own guided affirmation and visualization to revisit daily.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Three High-Leverage Identity Changes</b><span>One thing to stop, one thing to start, and one environment to transform.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Liberation Initiation Plan</b><span>A tailored, high-visibility artistic debut in your third week.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>30 Days of Direct Private Communication</b><span>Asynchronous messaging for questions, progress updates, and feedback throughout the experience; not 24/7 live access.</span></div></div>
-<div class="stack-row"><div class="check"><span class="rockstar-star" aria-hidden="true"></span></div><div><b>Integration & Next-Era Direction</b><span>Review what changed and map the next steps for expressing your artistic identity.</span></div></div>
-</div></div></section>
-<section><div class="wrap"><div class="eyebrow center">The timeline</div><h2>Thirty days of becoming.</h2><div class="steps"><div class="step"><div class="eyebrow">Week 01</div><b>Awaken</b><p>90-minute initiation. Explore your origin, create the persona, establish your changes, and record your manifesto.</p></div><div class="step"><div class="eyebrow">Week 02</div><b>Embody</b><p>Practice the identity in daily life. Refine your approach with your first 30-minute follow-up.</p></div><div class="step"><div class="eyebrow">Week 03</div><b>Liberate</b><p>Prepare and execute your intentional public debut, with a 30-minute support session.</p></div></div><div class="card" style="margin-top:14px;text-align:center"><div class="eyebrow">Week 04</div><h3 style="margin:5px 0">Integrate</h3><p>Use your final 30-minute session to reflect, fine-tune your practices, and set the direction for your next era.</p></div></div></section>
-<section><div class="wrap"><div class="eyebrow center">The invitation</div><h2>This is for artists ready to <span class="accent">move.</span></h2><p class="intro">The private experience is designed for established artists with existing work, a meaningful creative direction, and the willingness to act—not just dream about a different identity.</p><div class="grid"><div class="card"><h3>For the artist who…</h3><p>Has an existing body of work, feels ready for a new creative era, welcomes honest self-exploration, and is prepared to take visible action.</p></div><div class="card"><h3>Not for the artist who…</h3><p>Wants guaranteed fame, a done-for-you marketing campaign, clinical therapy, or someone else to create their art for them.</p></div></div></div></section>
-<section><div class="wrap"><div class="eyebrow center">How to begin</div><h2>Start with the application.</h2><p class="intro">The application itself is an artistic identity experience. You'll describe the persona you're moving toward, explore a personalized tarot-inspired reading, and tell us how accurately it reflects you.</p><div class="steps"><div class="step"><div class="eyebrow">01 / APPLY</div><b>Reveal your direction</b><p>Share your artistic background, desired identity, and what you're ready to change.</p></div><div class="step"><div class="eyebrow">02 / REFLECT</div><b>Receive your reading</b><p>Explore your creative archetype and refine the interpretation with your own feedback.</p></div><div class="step"><div class="eyebrow">03 / NEXT STEP</div><b>Find your pathway</b><p>Based on your application, you may be invited to a private discovery call or offered a self-directed starting point.</p></div></div><p class="micro center" style="margin-top:22px">Submitting an application does not guarantee acceptance. A discovery call is an opportunity for both sides to assess fit.</p></div></section>
-<section><div class="wrap"><div class="eyebrow center">Questions</div><h2>Before you begin.</h2><div class="faq"><details><summary>Do I have to be a musician?</summary><p>No. This is for established artists across music, visual art, film, fashion, performance, and other creative disciplines. “Rockstar” describes a bold, deliberate creative identity—not a genre.</p></details><details><summary>Do I need to know my new persona already?</summary><p>No. You can begin with a feeling, a creative ambition, or a sense that your current expression no longer fits. The application and private process help you clarify it.</p></details><details><summary>What if my persona changes?</summary><p>That's expected. Your chosen persona name is optional and can evolve. The work is about intentional creative expression, not locking you into a permanent label.</p></details><details><summary>Is this hypnotherapy?</summary><p>The experience incorporates principles from hypnotherapy through personalized affirmations, guided visualization, and creative mental rehearsal. It is not clinical hypnotherapy, psychotherapy, or treatment for a mental health condition. If you have a mental health condition, seek care from a qualified healthcare professional.</p></details><details><summary>What happens after I apply?</summary><p>You'll receive a personalized reading and a next-step recommendation. Applicants who appear suited to private mentorship may be invited to book a discovery call. Other applicants may be offered a self-guided option.</p></details><details><summary>Is enrollment guaranteed?</summary><p>No. Private mentorship is limited to artists whose goals and readiness align with the experience.</p></details></div></div></section>
-<div class="end" id="application"><div class="wrap"><div class="sigil"><span class="rockstar-star" aria-hidden="true"></span></div><div class="eyebrow">Your next era is waiting</div><h2>Who are you <span class="accent">becoming?</span></h2><p class="intro">The first step isn't a purchase. It's an honest look at the artist you're ready to create as.</p><a class="cta" data-apply href="#application">Begin Your Application ↗</a><p class="micro">Free application and archetype reading · Private mentorship by invitation</p></div></div>
-</main><footer><strong><span class="rockstar-star" aria-hidden="true"></span> THE ROCKSTAR INITIATION <span class="rockstar-star" aria-hidden="true"></span></strong><br>Artistic identity • Deliberate creation • Your next era<br><span style="display:inline-block;margin-top:8px">© <span id="year"></span> The Rockstar Initiation</span></footer>
+        /* ---------- The Draw — entry page (free-reading funnel) ----------
+           Uses the site's own theme variables (same teal accent, same
+           light/dark toggle as the rest of the app) — just a richer layout. */
+        .eyebrow {
+          font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.22em;
+          color: var(--meta); margin: 0 0 22px; text-transform: uppercase;
+        }
+        .hero-h1 {
+          font-size: 2.05rem; line-height: 1.28; text-transform: uppercase;
+        }
+        @media (min-width: 860px) { .hero-h1 { font-size: 2.6rem; } }
+        .hero-sub { margin: 0 0 40px; }
+        .input-label {
+          display: block; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.18em;
+          text-transform: uppercase; color: var(--meta); margin-bottom: 12px; text-align: left;
+        }
+        .identity-input { font-size: 1.02rem; line-height: 1.55; }
+        .identity-input::placeholder { font-style: italic; }
+        .reassurance { font-size: 0.82rem; color: var(--meta); margin: 16px 0 0; }
+        .landing-divider { display: flex; justify-content: center; padding: 10px 0 6px; color: var(--meta); opacity: 0.6; }
+        .sacred-glyph { opacity: 0.85; }
+        .section-h2 {
+          font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.5rem; line-height: 1.35;
+          color: var(--text); margin: 0 0 20px; text-transform: uppercase; letter-spacing: -0.005em;
+        }
+        .section-body { margin: 0 0 36px; }
+        .steps-list { display: flex; flex-direction: column; gap: 24px; text-align: left; margin-bottom: 40px; width: 100%; }
+        .step { display: flex; gap: 18px; align-items: flex-start; }
+        .step-num { font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 600; color: var(--meta); letter-spacing: 0.05em; padding-top: 2px; flex-shrink: 0; }
+        .step-title { font-weight: 600; font-size: 0.98rem; color: var(--text); margin-bottom: 4px; }
+        .step-desc { font-size: 0.9rem; line-height: 1.55; color: var(--text-sub); margin: 0; }
+        .final-panel .sub { margin-bottom: 32px; }
+
+        /* ---------- Your Reading — reading-results page ----------
+           Its own dark/gold/magenta palette, independent of the app's
+           light/dark toggle and of the entry page's theme-linked colors:
+           this is the one moment meant to feel like a private reveal. */
+        .reading-result {
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          margin-right: calc(50% - 50vw);
+          background:
+            radial-gradient(ellipse 900px 460px at 50% -6%, rgba(168,85,247,0.10), transparent 60%),
+            radial-gradient(ellipse 620px 440px at 90% 18%, rgba(212,168,74,0.07), transparent 62%),
+            radial-gradient(ellipse 620px 500px at 4% 82%, rgba(147,51,234,0.07), transparent 60%),
+            #0a0908;
+          color: #efe7d8;
+          padding-bottom: 4vh;
+        }
+        .reading-result .content-inner { max-width: 460px; margin: 0 auto; padding: 6vh 24px 6vh; text-align: center; }
+        @media (min-width: 860px) { .reading-result .content-inner { max-width: 600px; padding: 8vh 24px 7vh; } }
+        .reading-result .eyebrow { color: #cfa646; }
+        .reading-result .rr-h1 {
+          font-family: 'Cinzel', serif; font-weight: 600; font-size: 2rem; line-height: 1.25;
+          letter-spacing: -0.01em; color: #f6efe1; margin: 0 0 26px; text-transform: uppercase;
+        }
+        @media (min-width: 860px) { .reading-result .rr-h1 { font-size: 2.4rem; } }
+        .reading-result .input-label { color: #cfa646; }
+        .reading-result .rr-identity {
+          font-family: 'Cinzel', serif; font-style: italic; font-size: 1.15rem; line-height: 1.6;
+          color: #f6efe1; margin: 0; padding: 0 6px;
+        }
+        .reading-result .landing-divider { background: transparent; color: rgba(212,168,74,0.45); padding: 4px 0; }
+
+        .reading-result .rr-cards { display: flex; flex-direction: column; gap: 32px; }
+        .reading-result .rr-card {
+          animation: rrCardIn 0.6s ease both;
+        }
+        @keyframes rrCardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .reading-result .rr-card-role {
+          font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.16em;
+          color: #cfa646; margin-bottom: 10px;
+        }
+        .reading-result .rr-card-question { font-size: 0.92rem; font-style: italic; color: #a89e8c; margin: 0 0 16px; }
+        .reading-result .rr-card-face {
+          position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 14px; padding: 24px 20px; border: 1px solid rgba(212,168,74,0.35); border-radius: 8px;
+          background: linear-gradient(180deg, rgba(212,168,74,0.05), rgba(255,255,255,0.015));
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 14px 34px rgba(0,0,0,0.4);
+          margin-bottom: 14px;
+        }
+        .reading-result .rr-card-art {
+          width: 100%; max-width: 220px; aspect-ratio: 2 / 3.42; object-fit: cover; border-radius: 6px;
+          border: 1px solid rgba(212,168,74,0.4); box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+        }
+        .reading-result .rr-card-face-corner {
+          position: absolute; top: 10px; left: 14px; font-family: 'Cinzel', serif; font-size: 0.75rem;
+          color: rgba(212,168,74,0.6); letter-spacing: 0.05em;
+        }
+        .reading-result .rr-card-face .sacred-glyph { color: #cfa646; opacity: 0.55; }
+        .reading-result .rr-card-face-name {
+          font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 600; color: #f6efe1; text-align: center;
+        }
+        .reading-result .rr-card-interp { font-size: 0.92rem; line-height: 1.6; color: #b9ae9a; margin: 0; }
+        .reading-result .source-note { font-size: 0.72rem; line-height: 1.5; color: #6b6255; text-align: center; margin-top: 24px; }
+
+        .reading-result .section-h2 {
+          font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.4rem; line-height: 1.35;
+          color: #f6efe1; margin: 0 0 20px; text-transform: uppercase; letter-spacing: -0.005em;
+        }
+        .reading-result .rr-h2-small { font-size: 1.15rem; }
+        .reading-result .sub { color: #a89e8c; }
+        .reading-result .rr-block-callout {
+          display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px;
+        }
+        .reading-result .rr-block-label {
+          font-size: 0.68rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #cfa646;
+        }
+        .reading-result .rr-block-name {
+          font-family: 'Cinzel', serif; font-size: 1.7rem; font-weight: 600; color: #e6c876; text-transform: uppercase;
+        }
+        .reading-result .rr-synthesis-text { font-size: 1.05rem; line-height: 1.75; color: #ddd3c2; margin: 0; }
+
+        .reading-result .rr-gap-flow { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 28px; }
+        .reading-result .rr-gap-step {
+          font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+          color: #b9ae9a; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.1); border-radius: 999px;
+        }
+        .reading-result .rr-gap-block { color: #e6c876; border-color: rgba(212,168,74,0.4); }
+        .reading-result .rr-gap-arrow { color: #6b6255; font-size: 0.9rem; }
+        .reading-result .rr-gap-copy { margin: 0; }
+
+        .reading-result .rr-cta { background: linear-gradient(135deg, #b6862f, #e3c069); color: #1a1408; font-weight: 700; box-shadow: 0 1px 2px rgba(212,168,74,0.2), 0 10px 26px rgba(212,168,74,0.18); }
+        .reading-result .rr-cta:active:not(:disabled) { box-shadow: 0 1px 2px rgba(212,168,74,0.2), 0 4px 12px rgba(212,168,74,0.16); }
+        .reading-result .rr-bundle-cta { background: rgba(255,255,255,0.06); color: #f6efe1; }
+        .reading-result .reassurance { font-size: 0.82rem; color: #8f8879; margin: 16px 0 0; }
+        .reading-result .rr-final .rr-identity { margin-bottom: 24px; }
+        .reading-result .rr-final .rr-bundle-cta { margin-top: 12px; }
+        .reading-result .text-link { color: #cfa646; opacity: 0.85; }
+
+        .reading-result .rr-preview-section .sub { margin-bottom: 24px; }
+        .reading-result .rr-preview-box {
+          background: linear-gradient(180deg, rgba(212,168,74,0.05), rgba(255,255,255,0.015));
+          border: 1px solid rgba(212,168,74,0.3);
+          border-radius: 18px;
+          padding: 32px 24px;
+          margin-bottom: 22px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+        }
+        .reading-result .rr-preview-play {
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+          background: none; border: none; cursor: pointer; color: #e6c876; font-family: inherit;
+        }
+        .reading-result .rr-preview-play:disabled { opacity: 0.7; cursor: default; }
+        .reading-result .rr-preview-play-icon {
+          width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(212,168,74,0.5);
+          background: rgba(212,168,74,0.08); display: flex; align-items: center; justify-content: center;
+          transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .reading-result .rr-preview-play:active:not(:disabled) .rr-preview-play-icon { transform: scale(0.94); }
+        .reading-result .rr-preview-play-label { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: #cfa646; }
+        .reading-result .rr-preview-text { font-style: italic; font-size: 1rem; line-height: 1.65; color: #ddd3c2; margin: 0; }
+
+        .reading-result .rr-reviews-section .testimonials { margin-bottom: 0; }
+        .reading-result .testimonial-card {
+          background: rgba(255,255,255,0.03); box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+          border: 1px solid rgba(212,168,74,0.15);
+        }
+        .reading-result .testimonial-quote { color: #ddd3c2; }
+        .reading-result .testimonial-name { color: #a89e8c; }
+        .reading-result .stars { color: #e3c069; }
+
+        /* ---------- Your Reset — post-purchase meditation + Initiation upsell ----------
+           Same private, dark/gold/magenta treatment as the rest of the funnel;
+           gradually more expansive/philosophical from section 4 down (.pm-deeper). */
+        .post-meditation {
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          margin-right: calc(50% - 50vw);
+          background: #0a0908;
+          color: #efe7d8;
+        }
+        .post-meditation .content-inner { max-width: 460px; margin: 0 auto; padding: 6vh 24px 6vh; text-align: center; }
+        @media (min-width: 860px) { .post-meditation .content-inner { max-width: 600px; padding: 7vh 24px 7vh; } }
+        .post-meditation .eyebrow { color: #cfa646; }
+        .post-meditation .sub { color: #a89e8c; }
+        .post-meditation .landing-divider { background: transparent; color: rgba(212,168,74,0.4); padding: 4px 0; }
+
+        .post-meditation .pm-hero {
+          background: radial-gradient(ellipse 900px 460px at 50% -10%, rgba(168,85,247,0.09), transparent 62%), #0a0908;
+          padding-top: 8vh;
+        }
+        .post-meditation .pm-sub { margin-bottom: 40px; }
+        .post-meditation .pm-player { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 30px; }
+        .post-meditation .pm-player-btn {
+          width: 96px; height: 96px; border-radius: 50%; border: 1px solid rgba(212,168,74,0.45);
+          background: radial-gradient(circle, rgba(212,168,74,0.14), rgba(212,168,74,0.03));
+          color: #e6c876; display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.2s ease; box-shadow: 0 0 0 0 rgba(212,168,74,0.25);
+        }
+        .post-meditation .pm-player-btn svg { width: 30px; height: 30px; }
+        .post-meditation .pm-player-btn:active { transform: scale(0.96); }
+        .post-meditation .pm-player-btn-active {
+          animation: pmBreathe 2.4s ease-in-out infinite;
+        }
+        @keyframes pmBreathe {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,74,0.22); }
+          50% { box-shadow: 0 0 0 14px rgba(212,168,74,0); }
+        }
+        .post-meditation .pm-pause-icon { position: relative; width: 22px; height: 26px; }
+        .post-meditation .pm-pause-icon::before, .post-meditation .pm-pause-icon::after {
+          content: ''; position: absolute; top: 0; width: 7px; height: 26px; background: currentColor; border-radius: 1px;
+        }
+        .post-meditation .pm-pause-icon::before { left: 2px; }
+        .post-meditation .pm-pause-icon::after { right: 2px; }
+        .post-meditation .pm-eq { display: flex; align-items: flex-end; gap: 4px; height: 20px; }
+        .post-meditation .pm-eq-bar { width: 3px; height: 6px; border-radius: 2px; background: rgba(212,168,74,0.35); transition: background 0.2s ease; }
+        .post-meditation .pm-eq-bar-active { background: #d4a84a; animation: pmEq 0.9s ease-in-out infinite; }
+        @keyframes pmEq { 0%, 100% { height: 6px; } 50% { height: 20px; } }
+        .post-meditation .pm-player-label { font-size: 0.78rem; letter-spacing: 0.05em; color: #cfa646; text-transform: uppercase; margin: 0; }
+        .post-meditation .pm-instruction { font-size: 0.92rem; font-style: italic; color: #9a917f; margin: 0 0 14px; }
+        .post-meditation .pm-personalized { font-size: 0.9rem; color: #b9ae9a; margin: 0; }
+        .post-meditation .pm-no-meditation { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 30px; }
+
+        .post-meditation .pm-note { font-size: 0.9rem; color: #cfa646; margin: 18px 0 0; font-style: italic; }
+
+        .post-meditation .pm-recap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+        .post-meditation .pm-recap-row { display: flex; flex-direction: column; gap: 6px; }
+        .post-meditation .pm-recap-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #cfa646; }
+        .post-meditation .pm-recap-value { font-family: 'Cinzel', serif; font-style: italic; font-size: 1.05rem; color: #f6efe1; }
+        .post-meditation .pm-recap-block { font-style: normal; text-transform: uppercase; color: #e6c876; letter-spacing: 0.02em; }
+
+        .post-meditation .pm-deeper {
+          background:
+            radial-gradient(ellipse 700px 500px at 90% 10%, rgba(147,51,234,0.08), transparent 60%),
+            radial-gradient(ellipse 700px 560px at 8% 60%, rgba(168,85,247,0.08), transparent 60%),
+            radial-gradient(ellipse 700px 500px at 85% 95%, rgba(212,168,74,0.06), transparent 60%),
+            #0a0908;
+        }
+        .post-meditation .section-h2 { font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.4rem; line-height: 1.35; color: #f6efe1; margin: 0 0 20px; text-transform: uppercase; letter-spacing: -0.005em; }
+        .post-meditation .rr-h2-small { font-size: 1.15rem; }
+        .post-meditation .rr-h1 { font-family: 'Cinzel', serif; font-weight: 600; font-size: 2rem; line-height: 1.25; color: #f6efe1; margin: 0 0 18px; text-transform: uppercase; }
+        @media (min-width: 860px) { .post-meditation .rr-h1 { font-size: 2.4rem; } }
+
+        .post-meditation .pm-flow { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 26px; }
+        .post-meditation .pm-flow-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .post-meditation .pm-flow-step {
+          font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+          color: #f6efe1; padding: 10px 20px; border: 1px solid rgba(212,168,74,0.35); border-radius: 999px;
+        }
+        .post-meditation .pm-flow-arrow { color: #6b6255; font-size: 0.85rem; padding: 2px 0; }
+
+        .post-meditation .pm-initiation-sub { font-size: 0.95rem; color: #cfa646; letter-spacing: 0.04em; margin: 0 0 6px; }
+        .post-meditation .pm-price { font-family: 'Cinzel', serif; font-size: 2.4rem; font-weight: 600; color: #e6c876; margin: 0 0 20px; }
+        .post-meditation .pm-list-block { margin-top: 26px; text-align: left; }
+        .post-meditation .pm-list-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #cfa646; margin-bottom: 12px; }
+        .post-meditation .pm-tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .post-meditation .pm-tag { font-size: 0.78rem; padding: 7px 14px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ddd3c2; }
+        .post-meditation .pm-tag-gold { background: rgba(212,168,74,0.1); border-color: rgba(212,168,74,0.3); color: #e6c876; }
+
+        .post-meditation .pm-toc { display: flex; flex-direction: column; gap: 14px; text-align: left; margin-top: 10px; }
+        .post-meditation .pm-toc-row { display: flex; align-items: baseline; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .post-meditation .pm-toc-num { font-family: 'Cinzel', serif; font-size: 0.85rem; color: #cfa646; flex-shrink: 0; }
+        .post-meditation .pm-toc-title { font-size: 0.96rem; color: #ddd3c2; }
+
+        .post-meditation .pm-continues { display: flex; flex-direction: column; align-items: center; }
+        .post-meditation .pm-level { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px; }
+        .post-meditation .pm-level-num { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: #cfa646; }
+        .post-meditation .pm-level-name { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 600; color: #f6efe1; text-transform: uppercase; }
+        .post-meditation .pm-level-desc { font-size: 0.88rem; font-style: italic; color: #a89e8c; }
+        .post-meditation .pm-level-muted { opacity: 0.65; }
+
+        .post-meditation .rr-cta { background: linear-gradient(135deg, #b6862f, #e3c069); color: #1a1408; font-weight: 700; box-shadow: 0 1px 2px rgba(212,168,74,0.2), 0 10px 26px rgba(212,168,74,0.18); text-decoration: none; }
+        .post-meditation .rr-cta:active { box-shadow: 0 1px 2px rgba(212,168,74,0.2), 0 4px 12px rgba(212,168,74,0.16); }
+
+        .post-meditation .pm-footer, .reading-result .pm-footer { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-bottom: 8vh; }
+        .post-meditation .text-link { color: #cfa646; opacity: 0.85; }
+      
+
+        :root {
+          --bg1: #faf8f5;
+          --bg-gradient: radial-gradient(ellipse at top, #ffffff 0%, #ece2d0 60%);
+          --text: #1c1a17; --text-sub: #75705f;
+          --card-bg: #ffffff; --card-border: rgba(0,0,0,0.06);
+          --card-shadow: 0 1px 2px rgba(20,15,5,0.03), 0 10px 28px rgba(20,15,5,0.05);
+          --input-bg: #ffffff; --input-border: rgba(0,0,0,0.09);
+          --cta-secondary-bg: rgba(0,0,0,0.045); --cta-secondary-text: #1c1a17;
+          --link: #0b7a6f; --error: #c0453f; --meta: #938c7c;
+          --pitch-bg: rgba(13,148,136,0.06); --pitch-border: rgba(13,148,136,0.16); --pitch-text: #1c1a17;
+          --preview-label: #0b7a6f; --star: #c99a1f;
+          --modal-bg: #ffffff; --modal-border: rgba(0,0,0,0.07);
+          --card-chip-text: #8a6a24; --card-chip-bg: rgba(184,134,11,0.08);
+          --overlay: rgba(30,24,15,0.35);
+          --spinner-track: rgba(0,0,0,0.12);
+        }
+        [data-theme="dark"] {
+          --bg1: #12100e;
+          --bg-gradient: radial-gradient(ellipse at top, #14201e 0%, #0a0f0e 60%);
+          --text: #f3f1ec; --text-sub: #a39c8c;
+          --card-bg: rgba(255,255,255,0.045); --card-border: rgba(255,255,255,0.08);
+          --card-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 28px rgba(0,0,0,0.35);
+          --input-bg: rgba(255,255,255,0.05); --input-border: rgba(255,255,255,0.12);
+          --cta-secondary-bg: rgba(255,255,255,0.08); --cta-secondary-text: #fff;
+          --link: #8ad8cf; --error: #ff9a9a; --meta: #9c968a;
+          --pitch-bg: rgba(13,148,136,0.12); --pitch-border: rgba(13,148,136,0.28); --pitch-text: #f2ece2;
+          --preview-label: #8ad8cf; --star: #f5c451;
+          --modal-bg: #1b1815; --modal-border: rgba(255,255,255,0.1);
+          --card-chip-text: #d9c7ab; --card-chip-bg: rgba(217,199,171,0.1);
+          --overlay: rgba(0,0,0,0.6);
+          --spinner-track: rgba(255,255,255,0.25);
+        }
+        * { box-sizing: border-box; }
+        .page-bg { min-height: 100vh; background: var(--bg-gradient); color: var(--text); transition: background 0.25s ease, color 0.25s ease; }
+        .app-scroll { min-height: 100vh; }
+        .content-col { max-width: 420px; margin: 0 auto; padding: 28px 20px 8vh; text-align: center; }
+        .content-col-wide { max-width: 480px; }
+
+        /* Real desktop layout, not a phone stuffed into a big screen: a wider reading
+           column, a full-bleed header, and a size bump — the same material design
+           language, scaled up for a mouse-and-keyboard-width viewport. */
+        @media (min-width: 860px) {
+          .content-col { max-width: 480px; padding: 40px 20px 10vh; }
+          .content-col-wide { max-width: 620px; }
+          h1 { font-size: 2.3rem; }
+          .reading-text { font-size: 1.2rem; }
+          .top-bar { padding-left: clamp(24px, 6vw, 72px); padding-right: clamp(24px, 6vw, 72px); }
+        }
+        h1 { font-family: 'Cinzel', serif; font-weight: 600; font-size: 1.9rem; letter-spacing: -0.01em; margin: 0 0 14px; }
+        .sub { color: var(--text-sub); font-size: 1rem; margin: 0 0 22px; line-height: 1.6; }
+        .spinner {
+          display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+          border: 2px solid var(--spinner-track); border-top-color: currentColor;
+          animation: spin 0.75s linear infinite;
+        }
+        .cta-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+          background: linear-gradient(135deg, #0D9488, #17bfa9);
+          color: #ffffff; font-weight: 600; font-size: 1rem;
+          padding: 15px 32px; border-radius: 14px; border: none; cursor: pointer;
+          text-decoration: none; letter-spacing: 0.01em;
+          width: 100%; max-width: 320px; margin: 0 auto;
+          box-shadow: 0 1px 2px rgba(13,148,136,0.15), 0 8px 20px rgba(13,148,136,0.22);
+          transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+        .cta-btn:active:not(:disabled) { transform: scale(0.97); box-shadow: 0 1px 2px rgba(13,148,136,0.15), 0 4px 10px rgba(13,148,136,0.2); }
+        .cta-btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+        .cta-btn.secondary { background: var(--cta-secondary-bg); color: var(--cta-secondary-text); box-shadow: none; }
+        .text-input {
+          width: 100%; padding: 15px 16px; border-radius: 14px; border: 1px solid var(--input-border);
+          background: var(--input-bg); color: var(--text); font-size: 1rem; margin-bottom: 18px; font-family: inherit;
+          box-shadow: var(--card-shadow); transition: border-color 0.15s ease;
+        }
+        .text-input:focus { outline: none; border-color: #0D9488; }
+        .text-link { background: none; border: none; color: var(--link); cursor: pointer; margin-top: 18px; font-size: 0.92rem; font-weight: 500; }
+        .error-text { color: var(--error); margin-top: 10px; font-size: 0.88rem; }
+        .checkout-card { background: var(--card-bg); border-radius: 22px; padding: 8px; margin-top: 14px; width: 100%; box-shadow: var(--card-shadow); }
+        .panel { display: flex; flex-direction: column; align-items: center; }
+        .top-bar {
+          display: flex; justify-content: space-between; align-items: center;
+          font-size: 0.85rem; color: var(--meta);
+          position: sticky; top: 0; z-index: 10;
+          width: 100vw; margin-left: calc(50% - 50vw); margin-bottom: 22px;
+          padding: 16px 20px 0;
+        }
+        .top-bar-name { font-weight: 600; color: var(--text); }
+        .tone-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--card-bg); border: none; color: var(--text); padding: 8px 12px; min-width: 34px; min-height: 34px; border-radius: 999px; cursor: pointer; font-size: 0.78rem; font-weight: 500; box-shadow: var(--card-shadow); transition: transform 0.15s ease; }
+        .tone-btn:active { transform: scale(0.96); }
+        .card-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; }
+        .card-chip { font-size: 0.72rem; font-weight: 600; padding: 7px 14px; border-radius: 999px; background: var(--card-chip-bg); color: var(--card-chip-text); }
+        .reading-text { font-size: 1.1rem; line-height: 1.75; margin-bottom: 28px; }
+        .gate { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .credits-note { font-size: 0.85rem; color: var(--meta); margin-top: 12px; }
+        .scale-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 22px; }
+        @media (min-width: 480px) { .scale-grid { grid-template-columns: repeat(10, 1fr); } }
+        .scale-btn { height: 46px; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease; }
+        .scale-btn:active { transform: scale(0.96); }
+        .scale-btn-selected { background: #0D9488; border-color: #0D9488; color: #fff; }
+        .choice-grid { display: grid; gap: 10px; width: 100%; margin-bottom: 22px; }
+        .choice-btn { text-align: left; padding: 15px 16px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-family: inherit; font-size: 0.94rem; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
+        .choice-btn:active { transform: scale(0.98); }
+        .choice-btn-selected { border-color: #0D9488; background: rgba(13,148,136,0.08); box-shadow: 0 0 0 1px rgba(13,148,136,0.12); }
+        .quiz-nav { display: flex; justify-content: space-between; gap: 12px; width: 100%; max-width: 320px; margin: 0 auto; }
+        .quiz-nav .cta-btn { width: auto; flex: 1; margin: 0; }
+        .legacy-link { font-size: 0.8rem; color: var(--meta); margin-top: 28px; text-decoration: none; opacity: 0.75; }
+        .legacy-box { width: 100%; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--card-border); }
+        .meditation-pitch {
+          font-size: 1.05rem;
+          font-weight: 500;
+          line-height: 1.65;
+          color: var(--pitch-text);
+          background: var(--pitch-bg);
+          border-radius: 22px;
+          padding: 22px 24px;
+          margin-bottom: 22px;
+        }
+        .preview-box {
+          width: 100%;
+          background: var(--card-bg);
+          box-shadow: var(--card-shadow);
+          border-radius: 22px;
+          padding: 22px 24px;
+          margin-bottom: 22px;
+          text-align: left;
+        }
+        .preview-label {
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--preview-label);
+          margin-bottom: 12px;
+        }
+        .preview-text { font-style: italic; font-size: 1.02rem; line-height: 1.65; margin-bottom: 12px; }
+        .preview-fade { font-size: 0.88rem; color: var(--meta); margin: 0; line-height: 1.5; }
+        .testimonials { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-bottom: 22px; }
+        .testimonial-card { background: var(--card-bg); box-shadow: var(--card-shadow); border-radius: 20px; padding: 16px 18px; text-align: left; }
+        .stars { color: var(--star); font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .testimonial-quote { font-size: 0.92rem; line-height: 1.55; margin: 0 0 8px; }
+        .testimonial-name { font-size: 0.78rem; color: var(--meta); font-weight: 500; }
+        .exit-overlay { position: fixed; inset: 0; background: var(--overlay); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .exit-modal { position: relative; background: var(--modal-bg); border-radius: 22px; padding: 34px 28px; max-width: 380px; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
+        .exit-close { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--meta); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+      
+.starburst{width:23px;height:23px;display:inline-block;background:#d4af37;clip-path:polygon(50% 0,59% 31%,85% 15%,69% 41%,100% 50%,69% 59%,85% 85%,59% 69%,50% 100%,41% 69%,15% 85%,31% 59%,0 50%,31% 41%,15% 15%,41% 31%);vertical-align:middle}
+.input-label{width:100%}.quiz-nav{margin-top:12px}.identity-input{min-height:110px;resize:vertical}
+.selectable-list{width:100%;margin-bottom:18px}.read-card{background:var(--card-bg);box-shadow:var(--card-shadow);border-radius:20px;padding:22px;text-align:left;width:100%;margin:14px 0 22px}
+.read-card h2{font-family:Cinzel,serif;font-size:1.45rem;color:#d4af37;margin:12px 0}
+.read-card p{line-height:1.7;color:var(--text-sub)}
+.field-gap{height:10px}.muted-note{color:var(--meta);font-size:.85rem;line-height:1.5;margin:6px 0 24px}
+.info-box{background:var(--pitch-bg);border:1px solid var(--pitch-border);border-radius:16px;padding:16px;text-align:left;line-height:1.6;color:var(--pitch-text);margin:12px 0 20px}
+.option-note{font-size:.78rem;color:var(--meta);text-align:left;margin:0 0 18px}
+.reading-result-shell{background:#0a0908;border-radius:22px;padding:28px 20px;margin:6px 0 24px;color:#efe7d8;width:100%;text-align:center}
+.reading-result-shell h2{font-family:Cinzel,serif;color:#f6efe1;text-transform:uppercase}.reading-result-shell p{color:#ded0b7;line-height:1.8}
+.hidden{display:none!important}
+</style></head>
+<body><div class="page-bg" data-theme="dark" id="root"><div class="app-scroll"><div class="content-col content-col-wide"><div class="top-bar"><span class="top-bar-name">Magi Path</span><div style="display:flex;gap:10px"><button class="tone-btn" id="history-btn">My readings</button><button class="tone-btn" id="theme-toggle" aria-label="Toggle theme">☾</button></div></div><main id="main"></main></div></div></div>
 <script>
-// SET YOUR EXISTING APPLICATION URL HERE WHEN READY.
-// Example: const APPLICATION_URL = 'https://your-app.example.com';
-const APPLICATION_URL = '';
-document.getElementById('year').textContent = new Date().getFullYear();
-document.querySelectorAll('[data-apply]').forEach(link => {
-  if (APPLICATION_URL.trim()) { link.href = APPLICATION_URL; link.target = '_self'; }
-  else { link.href = '#application'; link.addEventListener('click', (event) => { if (link.closest('#application')) {event.preventDefault(); alert('Application link coming soon. Add your application URL in index.html.');} }); }
-});
-</script>
-</body></html>
+const KEY='rockstar-draw-identical-v1';
+const $=id=>document.getElementById(id);
+const clean=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let db;try{db=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+db=db||{profile:{},applications:[],current:{},reading:null,priorReading:null};
+let step='intro',feedbackCount=0;
+const order=['intro','distance','resistance','energy','response','cost','adaptive','reading','accuracy','seriousness','income','experience','recommend'];
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const a=()=>db.current;
+const btn=(label,fn,kind='')=>`<button type="button" class="cta-btn ${kind}" data-action="${fn}">${label}</button>`;
+const field=(key,label,placeholder,kind='text',required=true)=>`<label class="input-label" for="f-${key}">${label}</label>${kind==='textarea'?`<textarea class="text-input identity-input" id="f-${key}" data-field="${key}" placeholder="${clean(placeholder)}" ${required?'required':''}>${clean(a()[key])}</textarea>`:`<input class="text-input" id="f-${key}" data-field="${key}" type="${kind}" placeholder="${clean(placeholder)}" value="${clean(a()[key])}" ${required?'required':''}>`}`;
+const choices=(key,opts,multi=false)=>`<div class="choice-grid">${opts.map(s=>{let v=Array.isArray(s)?s[0]:s,t=Array.isArray(s)?s[1]:s,selected=multi?(a()[key]||[]).includes(v):a()[key]===v;return `<button type="button" class="choice-btn ${selected?'choice-btn-selected':''}" data-choice="${key}" data-value="${clean(v)}" data-multi="${multi?'yes':'no'}">${clean(t)}</button>`}).join('')}</div>`;
+const nav=(prev,next,label='Continue')=>`<div class="quiz-nav">${btn('Back',prev,'secondary')}${btn(label,next)}</div>`;
+const layout=(eyebrow,title,sub,body)=>`<div class="panel"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}${body}<p class="error-text hidden" id="error"></p></div>`;
+const glyph=`<svg width="34" height="34" viewBox="0 0 34 34" fill="none" class="sacred-glyph"><circle cx="17" cy="17" r="12.5" stroke="currentColor" stroke-width=".9"/><line x1="17" y1="2.5" x2="17" y2="31.5" stroke="currentColor" stroke-width=".9"/></svg>`;
+const showError=(msg)=>{let el=$('error');if(el){el.textContent=msg;el.classList.remove('hidden')}};
+function archetype(){const t=[a().desiredIdentity,a().origin,a().disconnect,a().project,a().adaptive].join(' ').toLowerCase();let n='The Magician',q='The Visionary';if(/rebel|punk|provoc|transgress/.test(t)){n='The Devil';q='The Rebel'}else if(/dream|fantasy|surreal|mystic/.test(t)){n='The Moon';q='The Dreamer'}else if(/light|star|radiant|inspir/.test(t)){n='The Star';q='The Luminary'}else if(/renew|reinvent|reborn|transform/.test(t)){n='Death';q='The Reborn'}else if(/power|command|authority|king|queen/.test(t)){n='The Emperor';q='The Sovereign'};return {name:n,title:q,text:`Your answers suggest a creative direction associated with ${q.toLowerCase()}. Reflect on how your natural creative interests connect to the persona you describe as ${a().personaName?`“${a().personaName}”`:'your next era'}. This archetype is a creative prompt, not a fixed personality classification.`,date:new Date().toISOString(),answers:{...a()}}}
+function finishReading(){if(db.reading)db.priorReading=db.reading;db.reading=archetype();save();render()}
+function resultCard(r){return `<div class="reading-result-shell"><span class="starburst"></span><p class="eyebrow" style="color:#d4af37;margin:18px 0">YOUR ARTISTIC ARCHETYPE</p><h2>${clean(r.name)}</h2><p style="color:#d4af37">${clean(r.title)}</p><p>${clean(r.text)}</p></div>`}
+function render(){let out='',v=a();
+if(step==='intro'){
+out=`<div class="panel hero-panel"><p class="eyebrow">THE MAGICIAN'S PATH • THE ROCKSTAR INITIATION</p><h1 class="hero-h1">You've outgrown the artist the world knows.</h1><p class="sub hero-sub">It's time to become the one you know. Tell me who you're becoming. I'll draw the cards to explore what stands in the way.</p>${field('displayName','WHAT SHOULD WE CALL YOU?','Your name')}${field('desiredIdentity','WHO IS THE ARTIST YOU ARE BECOMING?','Describe their vision, presence, artistic expression and identity…','textarea')}${field('personaName','GIVE YOUR NEW PERSONA A NAME (OPTIONAL)','A stage name, title, or identity') }<p class="option-note">Your persona name is yours to change whenever you want.</p>${btn('Begin My Application','distance')}<p class="reassurance">The reading is free. No commitment.</p></div><div class="landing-divider">${glyph}</div><div class="panel steps-panel"><h2 class="section-h2">The reading starts with you.</h2><p class="sub section-body">You don't ask the cards who you're supposed to be.<br><br>You decide that first.<br><br>The reading is a mirror — a way to explore the patterns and beliefs that might stand between your current artistic identity and the next.</p><div class="steps-list"><div class="step"><span class="step-num">01</span><div><div class="step-title">Name It</div><p class="step-desc">Describe the artist you wish to embody.</p></div></div><div class="step"><span class="step-num">02</span><div><div class="step-title">Reveal It</div><p class="step-desc">Explore your archetype through The Draw's reading.</p></div></div><div class="step"><span class="step-num">03</span><div><div class="step-title">Apply</div><p class="step-desc">Discover your recommended next step.</p></div></div></div>${btn('Begin My Application','distance')}</div>`;
+}else if(step==='distance')out=layout('02 / DISTANCE','How close do you feel to them?','1 means you barely recognize this artist in yourself. 10 means you are already living as them.',`<div class="scale-grid">${Array.from({length:10},(_,i)=>`<button type="button" class="scale-btn ${Number(v.distance)===i+1?'scale-btn-selected':''}" data-choice="distance" data-value="${i+1}">${i+1}</button>`).join('')}</div>${nav('intro','resistance')}`);
+else if(step==='resistance')out=layout('03 / RESISTANCE','What usually gets in the way?','',choices('obstacle',['Fear of being judged','Expectations of my audience','An outdated public persona','Perfectionism','Lack of clarity','Something else'])+nav('distance','energy'));
+else if(step==='energy')out=layout('04 / ENERGY','Where does your strongest creative energy go?','Choose up to two.',choices('energy',['Making the work','Performance and visibility','Creative direction and aesthetics','Planning and perfectionism','Self-doubt and comparison','Avoidance and distraction'],true)+nav('resistance','response'));
+else if(step==='response')out=layout('05 / DIRECTION','When inspiration strikes, what do you do with it?','',choices('response',['I create immediately','I plan and refine before showing anyone','I overthink and delay','I adapt it to what people expect','I share it boldly'])+nav('energy','cost'));
+else if(step==='cost')out=layout('06 / TRANSFORMATION','If you became this artist, what might you have to leave behind?','',choices('cost',['The image people have of me','A comfortable but outdated aesthetic','Approval from my audience','Old creative habits','The fear of being seen differently'])+field('origin','THE FOOL — WHAT DID YOU LOVE CREATING AS A CHILD?','Your earliest memories, creative impulses, and natural interests…','textarea')+field('disconnect','WHAT NO LONGER FEELS TRUE TO YOUR ART?','Describe the disconnect with your current identity…','textarea')+nav('response','adaptive'));
+else if(step==='adaptive')out=layout('07 / THE DEEPER QUESTION','What does your next era demand of you?','Think about a new project, public transformation, or artistic debut.',field('project','WHAT IS YOUR NEXT PROJECT OR ERA?','Album, performance, collection, film, artistic rebrand…','textarea')+field('adaptive','WHAT WOULD MAKE THIS TRANSFORMATION REAL?','What would you stop doing, start doing, and change in your environment?','textarea')+nav('cost','reading','Draw My Cards'));
+else if(step==='reading'){if(!db.reading && db.priorReading){out=layout('YOUR PREVIOUS READING','Welcome back.','Here is the archetype from your last application. Does it still reflect who you are?',resultCard(db.priorReading)+choices('previousAccurate',[['yes','Yes, it still resonates'],['no','No, I have changed']])+nav('adaptive','accuracy','Continue'))}else{if(!db.reading)db.reading=archetype();save();out=layout('YOUR READING','The artist within.','The cards are a reflective tool for your next creative era.',resultCard(db.reading)+nav('adaptive','accuracy','Continue'))}}
+else if(step==='accuracy')out=layout('THE REFLECTION','Does this reading feel accurate?','You decide what resonates, not the cards.',resultCard(db.reading||db.priorReading||archetype())+choices('accurate',[['yes','Yes, this reflects me'],['no','No, I want to clarify it']])+field('correction','WHAT WOULD YOU CHANGE? (IF NEEDED)','Correct or refine the interpretation in your own words…','textarea',false)+nav('reading','seriousness','Continue'));
+else if(step==='seriousness')out=layout('08 / COMMITMENT','How serious are you about stepping into this identity?','Choose the answer that best describes your intent.',choices('seriousness',[['1','Just exploring'],['2','Curious but not ready'],['3','I want to begin soon'],['4','Ready to take action'],['5','Fully committed to my next era']])+nav('accuracy','income'));
+else if(step==='income')out=layout('09 / YOUR CIRCUMSTANCES','What is your current income range?','Used to recommend an appropriate level of support. Your income does not determine your creative worth.',choices('income',[['under25','$0–$24,999/year'],['25to50','$25,000–$49,999/year'],['50to100','$50,000–$99,999/year'],['over100','$100,000+/year'],['prefer','Prefer not to say']])+nav('seriousness','experience'));
+else if(step==='experience')out=layout('10 / ARTISTIC EXPERIENCE','Where are you in your artistic career?','',choices('established',[['established','I have an established body of work'],['emerging','I am building my creative practice'],['starting','I am just beginning']])+choices('support',[['private','I want private, personalized mentorship'],['self','I prefer a self-guided experience'],['meditation','I want a focused AI-generated initiation']])+field('email','YOUR EMAIL','you@example.com','email')+field('portfolio','YOUR PORTFOLIO OR SOCIAL PROFILE (OPTIONAL)','https://…','url',false)+`<p class="option-note">Your details are stored only in this browser until a secure backend is connected. Do not submit sensitive information in this demonstration.</p>`+nav('income','recommend','See My Recommendation'));
+else if(step==='recommend'){let eligible=v.established==='established'&&v.support==='private'&&Number(v.seriousness)>=4&&v.income!=='under25',route=eligible?'call':v.support==='meditation'||Number(v.seriousness)<3?'meditation':'self';v.route=route;save();let title=route==='call'?'You may be a fit.':route==='self'?'Begin your initiation independently.':'Your first initiation begins here.';let copy=route==='call'?'Your application suggests you may be a good match for private Rockstar Initiation mentorship. The next step is a complimentary discovery call.':route==='self'?'The self-guided Rockstar Initiation offers a structured path through The Fool, Persona, Programming, Manifesto and Liberation.':'Begin with a personalized guided initiation, practice each morning, and reapply when you are ready for more.';out=layout('YOUR RECOMMENDED PATH',title,copy,resultCard(db.reading||archetype())+`<div class="info-box">${route==='call'?'Congratulations. You may be the right fit. Booking is by invitation and final acceptance is determined on the discovery call.':`Set a recurring reminder on your phone to return to your initiation each morning. When you're ready for the next step, return and reapply.`}</div>${btn(route==='call'?'Book a Discovery Call':route==='self'?'Explore the Self-Guided Initiation':'Explore Your AI Initiation','destination')}${btn('Reapply / Revisit My Reading','reapply','secondary')}<p class="muted-note">Destination URLs require configuration. This HTML file does not process payment or generate real AI/audio.</p>`)}
+$('main').innerHTML=out;document.querySelectorAll('[data-field]').forEach(el=>{el.addEventListener('input',()=>{a()[el.dataset.field]=el.value;save()})});document.querySelectorAll('[data-choice]').forEach(el=>el.addEventListener('click',()=>{let k=el.dataset.choice,value=el.dataset.value;if(el.dataset.multi==='yes'){let arr=a()[k]||[];a()[k]=arr.includes(value)?arr.filter(x=>x!==value):arr.length<2?[...arr,value]:arr}else a()[k]=value;save();render()}));document.querySelectorAll('[data-action]').forEach(el=>el.addEventListener('click',()=>move(el.dataset.action)));window.scrollTo({top:0,behavior:'instant'});
+}
+function move(next){if(next==='destination'){showError('Add your Whop or Calendly destination URL in the website configuration.');return}if(next==='reapply'){db.applications.push({date:new Date().toISOString(),answers:{...a()},reading:db.reading});db.priorReading=db.reading;db.reading=null;db.current={displayName:a().displayName,desiredIdentity:a().desiredIdentity,personaName:a().personaName};step='intro';feedbackCount=0;save();render();return}
+if(step==='intro'&&next==='distance'&&(!a().displayName?.trim()||!a().desiredIdentity?.trim()))return showError('Enter your name and describe the artist you want to become.');
+if(step==='accuracy'&&next==='seriousness'){if(!a().accurate)return showError('Tell us whether the reading feels accurate.');if(a().accurate==='no'){if(!a().correction?.trim())return showError('Tell us what you would change.');if(feedbackCount<2){db.reading=archetype();db.reading.text+=' Your clarification: '+a().correction;feedbackCount++;a().accurate='';save();render();return}}}
+if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='no'){db.reading=archetype();save()}else if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='yes'){db.reading=db.priorReading;save()}
+if(step==='experience'&&next==='recommend'&&(!a().email?.includes('@')||!a().established||!a().support))return showError('Choose your experience and support preferences and enter a valid email.');
+step=next;save();render()}
+$('theme-toggle').onclick=()=>{let root=$('root');root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';$('theme-toggle').textContent=root.dataset.theme==='dark'?'☾':'☀'};
+$('history-btn').onclick=()=>{let text=(db.applications.length?db.applications.map((x,i)=>`${i+1}. ${new Date(x.date).toLocaleDateString()} — ${x.reading?.name||'Reading'}`).join('\n'):'No prior applications saved in this browser.');alert(text)};
+render();
+</script></body></html>
