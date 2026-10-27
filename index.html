@@ -774,7 +774,6 @@ else if(step==='recommend'){
     ?'Your application suggests that your artistic experience, commitment, and circumstances may align with private Rockstar Initiation mentorship. Book a discovery call to discuss your next creative era and determine whether we are a good fit to work together.'
     :"Based on your application, I don't think you're the right fit for the private Rockstar Initiation just yet. I recommend beginning with the self-guided digital program and developing your next artistic identity at your own pace.";
   out=layout('APPLICATION SUBMITTED',title,copy,
-    resultCard(db.reading||archetype())+
     `<div class="info-box">${eligible?'You are invited to book a complimentary discovery call to discuss your Rockstar Initiation.':'Start with the self-guided initiation. When you feel ready to take the next step, you can return and reapply.'}</div>`+
     btn(eligible?'Book Your Discovery Call':'Explore the Self-Guided Initiation','destination')+
     btn('Reapply / Revisit My Reading','reapply','secondary'));
