@@ -468,6 +468,56 @@
 @keyframes cardGlow{0%{opacity:.4;transform:translateY(4px)}100%{opacity:1;transform:translateY(-4px)}}
 @media(max-width:520px){.tarot-spread{gap:5px}.tarot-card figcaption{font-size:.53rem}.tarot-card figcaption span{font-size:.5rem}.tarot-card img{border-radius:3px}}
 @media(prefers-reduced-motion:reduce){.reading-loader *{animation:none!important}}
+/* ─── Rockstar reading: restrained, luminous, iOS-inspired layout ─── */
+.reading-result-shell{
+  max-width:760px;width:100%;margin:8px auto 30px;
+  padding:clamp(24px,5vw,50px) clamp(18px,4vw,46px);
+  border-radius:30px;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(212,175,55,.12),transparent 85%),linear-gradient(155deg,#151b1a 0%,#0d1211 65%,#101310 100%);
+  border:1px solid rgba(220,193,122,.19);
+  box-shadow:0 20px 65px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.065);
+  overflow:hidden;text-align:center;
+}
+.reading-result-shell .starburst{width:36px;height:36px;filter:drop-shadow(0 0 14px rgba(236,200,105,.4));}
+.reading-result-shell h2{font-size:clamp(1.6rem,4vw,2.35rem);letter-spacing:.04em;margin:10px 0 3px}
+.reading-result-shell .reading-subtitle{color:#dcc28b;font-size:.95rem;letter-spacing:.06em;margin:0 auto 23px}
+.reading-result-shell .reading-intro{max-width:490px;margin:0 auto 30px;color:#b6b6ac;font-size:.96rem;line-height:1.75}
+.tarot-spread{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:start;justify-content:center;
+  gap:clamp(10px,3vw,22px);max-width:640px;
+  width:100%;margin:12px auto 24px;
+}
+.tarot-card{margin:0;min-width:0;width:100%;display:flex;align-items:center;flex-direction:column;text-align:center}
+.tarot-card .tarot-image-frame{
+  width:100%;max-width:180px;display:block;padding:5px;
+  border-radius:13px;background:linear-gradient(145deg,#e2c982,#5b502d 48%,#bd984a);
+  box-shadow:0 9px 26px rgba(0,0,0,.4),0 0 22px rgba(212,175,55,.10);
+}
+.tarot-card img{display:block;width:100%;height:auto;aspect-ratio:0.57;object-fit:cover;border:none;border-radius:9px;box-shadow:none;background:#241c16}
+.tarot-card figcaption{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;margin-top:14px;color:#ebd394;font-family:Cinzel,serif;font-size:.70rem;letter-spacing:.10em;line-height:1.4}
+.tarot-card figcaption span{font-family:inherit;font-size:.69rem;letter-spacing:0;color:#b9b7aa;line-height:1.4;margin:0}
+.tarot-source{margin:4px auto 25px;color:#888779;font-size:.70rem}
+.reading-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:640px;margin:0 auto 23px;text-align:left}
+.reading-insight{padding:17px 14px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.035);backdrop-filter:blur(10px)}
+.reading-insight strong{display:block;font-family:Cinzel,serif;letter-spacing:.09em;color:#dfbc70;font-size:.70rem;margin-bottom:10px}
+.reading-insight p{margin:0;color:#ded9cd;line-height:1.65;font-size:.89rem}
+.reading-synthesis{max-width:640px;margin:18px auto 0;padding:23px 22px;background:linear-gradient(140deg,rgba(212,175,55,.13),rgba(212,175,55,.035));border:1px solid rgba(212,175,55,.24);border-radius:20px;text-align:center}
+.reading-synthesis .rr-block-label{color:#d8bd7e;letter-spacing:.16em;font-family:Cinzel,serif;font-size:.70rem;margin:0 0 12px}
+.reading-synthesis .rr-synthesis-text{color:#f1e9da;font-size:1.06rem;line-height:1.68;margin:0}
+@media(max-width:560px){
+  .reading-result-shell{padding:24px 13px;border-radius:24px}
+  .tarot-spread{gap:8px;margin:8px auto 18px}
+  .tarot-card .tarot-image-frame{padding:3px;border-radius:8px}
+  .tarot-card img{border-radius:5px}
+  .tarot-card figcaption{font-size:.57rem;letter-spacing:.04em;margin-top:9px}
+  .tarot-card figcaption span{font-size:.56rem}
+  .reading-insights{grid-template-columns:1fr;gap:8px}
+  .reading-insight{padding:13px 16px}
+  .reading-insight strong{margin-bottom:5px}
+  .reading-synthesis{padding:19px 17px}
+}
+
 
 </style></head>
 <body><div class="page-bg" data-theme="dark" id="root"><div class="app-scroll"><div class="content-col content-col-wide"><div class="top-bar"><span class="top-bar-name">Magi Path</span><div style="display:flex;gap:10px"><button class="tone-btn" id="history-btn">My readings</button><button class="tone-btn" id="theme-toggle" aria-label="Toggle theme">☾</button></div></div><main id="main"></main></div></div></div>
@@ -653,7 +703,7 @@ async function submitArtistApplication(){
     const res=await fetch(CONFIG.applicationEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(submission)});
     if(!res.ok){const detail=await res.json().catch(()=>null);throw new Error(detail?.error||('Submission HTTP '+res.status));}
     return true;
-  }catch(err){showError('We could not submit your application. Please retry. '+err.message);return false;}
+  }catch(err){console.error('Rockstar application submission:',CONFIG.applicationEndpoint,err);showError('Application could not be delivered. Please try again. If this persists, the submission service may be blocking the browser request ('+err.message+').');return false;}
 }
 
 const KEY='rockstar-draw-identical-v1';
@@ -679,12 +729,22 @@ function cardSpread(cards){
   return `<div class="tarot-spread" aria-label="Your three tarot cards">${cards.slice(0,3).map((c,i)=>{
     const card=typeof c==='string'?ARCANA.find(x=>x.n===c):c;
     if(!card)return '';
-    return `<figure class="tarot-card"><img src="${clean(card.img)}" alt="${clean(card.n)} Rider-Waite-Smith card" loading="lazy"/><figcaption>${CARD_POSITIONS[i]}<span>${clean(card.n)}</span></figcaption></figure>`;
+    return `<figure class="tarot-card"><span class="tarot-image-frame"><img src="${clean(card.img)}" alt="${clean(card.n)} Rider-Waite-Smith card" loading="lazy"/></span><figcaption>${CARD_POSITIONS[i]}<span>${clean(card.n)}</span></figcaption></figure>`;
   }).join('')}</div><p class="tarot-source">Rider–Waite–Smith tarot artwork · Pamela Colman Smith · Public domain</p>`;
 }
-function resultCard(r){const sections=r.sections||{};
-  const synthesis=String(r.text||'Reflect on your current creative strengths, the patterns that hold you back, and the next step toward your chosen artistic identity.');
-  return `<div class="reading-result-shell"><span class="starburst"></span><p class="eyebrow" style="color:#d4af37;margin:18px 0">THE STAR</p><h2>The Star</h2><p style="color:#d4af37;margin-bottom:20px">The Abundant Lightbringer</p><p class="sub" style="margin-bottom:24px">Your creativity is a light worth sharing. These three cards offer a reflection on where you are and the artist you're becoming.</p>${cardSpread(r.cards)}${CARD_POSITIONS.map(k=>sections[k.toLowerCase()]?`<p style="text-align:left"><strong style="color:#d4af37">${k}</strong><br>${clean(sections[k.toLowerCase()])}</p>`:'').join('')}<div class="rr-block-callout" style="margin-top:24px"><p class="rr-block-label">YOUR READING IN ONE STATEMENT</p><p class="rr-synthesis-text">${clean(synthesis)}</p></div></div>`;
+function resultCard(r){
+  const sections=r.sections||{};
+  const synthesis=String(r.text||'Reflect on your creative strengths, the patterns holding you back, and one step toward your chosen artistic identity.');
+  const insights=CARD_POSITIONS.map(k=>sections[k.toLowerCase()]?`<div class="reading-insight"><strong>${k}</strong><p>${clean(sections[k.toLowerCase()])}</p></div>`:'').join('');
+  return `<section class="reading-result-shell" aria-label="Your tarot reading">
+    <span class="starburst" aria-hidden="true"></span>
+    <p class="eyebrow" style="color:#d4af37;margin:16px 0 8px">YOUR ARCHETYPE</p>
+    <h2>The Star</h2><p class="reading-subtitle">The Abundant Lightbringer</p>
+    <p class="reading-intro">Your creativity is a light worth sharing. These three cards reflect where you are and who you are becoming.</p>
+    ${cardSpread(r.cards)}
+    <div class="reading-insights">${insights}</div>
+    <div class="reading-synthesis"><p class="rr-block-label">YOUR READING IN ONE STATEMENT</p><p class="rr-synthesis-text">${clean(synthesis)}</p></div>
+  </section>`;
 }
 function showReadingLoading(){
  $('main').innerHTML=layout('THE DRAW','Your cards are being revealed.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',`<div class="reading-loader" role="status" aria-live="polite"><span class="load-star" aria-hidden="true">✴</span><div class="load-cards" aria-hidden="true"><span></span><span></span><span></span></div><p>Drawing your cards and interpreting their symbolism…</p></div>`);
