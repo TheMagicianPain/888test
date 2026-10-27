@@ -451,7 +451,7 @@
 .reading-result-shell{background:#0a0908;border-radius:22px;padding:28px 20px;margin:6px 0 24px;color:#efe7d8;width:100%;text-align:center}
 .reading-result-shell h2{font-family:Cinzel,serif;color:#f6efe1;text-transform:uppercase}.reading-result-shell p{color:#ded0b7;line-height:1.8}
 .hidden{display:none!important}
-/* Original card art with a dedicated five-card reveal and static reading positions. */
+/* Original Rider–Waite–Smith card art, with a three-card reveal. */
 .tarot-spread{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:18px 0 22px}
 .tarot-card{margin:0;text-align:center;min-width:0}
 .tarot-card img{width:100%;aspect-ratio:0.57;object-fit:cover;border-radius:6px;border:1px solid rgba(212,175,55,.44);box-shadow:0 7px 22px rgba(0,0,0,.34);background:#241c16}
@@ -463,7 +463,7 @@
 .reading-loader p{line-height:1.7;color:var(--text-sub)}
 .reading-loader .load-cards{display:flex;justify-content:center;gap:9px;margin:25px 0}
 .reading-loader .load-cards span{height:58px;width:38px;border:1px solid #b99745;background:linear-gradient(140deg,#201b17,#45331f,#1b1815);border-radius:5px;animation:cardGlow 1.5s ease-in-out infinite alternate}
-.reading-loader .load-cards span:nth-child(2){animation-delay:.15s}.reading-loader .load-cards span:nth-child(3){animation-delay:.3s}.reading-loader .load-cards span:nth-child(4){animation-delay:.45s}.reading-loader .load-cards span:nth-child(5){animation-delay:.6s}
+.reading-loader .load-cards span:nth-child(2){animation-delay:.15s}.reading-loader .load-cards span:nth-child(3){animation-delay:.3s}
 @keyframes starPulse{0%,100%{opacity:.55;filter:drop-shadow(0 0 2px #d4af37)}50%{opacity:1;filter:drop-shadow(0 0 14px #ffda79)}}
 @keyframes cardGlow{0%{opacity:.4;transform:translateY(4px)}100%{opacity:1;transform:translateY(-4px)}}
 @media(max-width:520px){.tarot-spread{gap:5px}.tarot-card figcaption{font-size:.53rem}.tarot-card figcaption span{font-size:.5rem}.tarot-card img{border-radius:3px}}
@@ -581,12 +581,12 @@ const ARCANA=[
 {roman:'XX',n:'Judgement',k:'awakening, reckoning, answering a deeper calling',img:'https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/20_Judgement.jpg'},
 {roman:'XXI',n:'The World',k:'completion, integration, embodiment, entering a new level',img:'https://raw.githubusercontent.com/mixvlad/TarotCards/main/tarot/rider-waite/720px/21_World.jpg'}
 ];
-const CARD_POSITIONS=["SELF","MIRROR","SHADOW","BINDING","PATH"];
+const CARD_POSITIONS=["SELF","SHADOW","MIRROR"];
 let pendingApi=false, audioUrl=null, audioElement=null;
-function drawFiveCards(){
-  // Original Draw rules: five unique Rider–Waite–Smith major arcana, selected randomly.
+function drawThreeCards(){
+  // Three unique Rider–Waite–Smith cards, randomly selected.
   const pool=[...ARCANA],cards=[];
-  for(let i=0;i<5;i++){const index=Math.floor(Math.random()*pool.length);cards.push(pool.splice(index,1)[0]);}
+  for(let i=0;i<3;i++){const index=Math.floor(Math.random()*pool.length);cards.push(pool.splice(index,1)[0]);}
   return cards;
 }
 function parseModelJSON(data){
@@ -599,23 +599,24 @@ function parseModelJSON(data){
 async function generateArtistReading(isCorrection=false){
   if(pendingApi)return;
   pendingApi=true;showReadingLoading();
-  const v=a(),cards=isCorrection&&db.reading?.cards?.length?db.reading.cards:drawFiveCards();
+  const v=a(),cards=isCorrection&&db.reading?.cards?.length===3?db.reading.cards:drawThreeCards();
   const prior=isCorrection?JSON.stringify(db.reading):'';
-  const prompt=`You are the symbolic five-card tarot reading engine for The Rockstar Initiation, a reflective application for established artists exploring their next creative persona.
-  Interpret the RANDOMLY drawn cards as symbols, not a factual diagnosis or evidence of supernatural knowledge. You must not imply the cards were chosen by their answers.
+  const prompt=`You are the symbolic THREE-card tarot reading engine for The Rockstar Initiation, a reflective application for artists developing their next creative persona.
+  Interpret randomly drawn Rider–Waite–Smith cards as prompts for reflection, never objective diagnoses. All applicants are framed by THE STAR: an abundant lightbringer, a creator whose authentic expression can illuminate others. Adapt this shared Star identity to the individual's actual answers without claiming that their destiny or inner life has been proven.
   Artist name: ${v.displayName||''}; desired identity: ${v.desiredIdentity||''}; persona: ${v.personaName||''}; childhood inclinations: ${v.origin||''};
   distance from desired identity 1-10: ${v.distance||''}; main obstacle: ${v.obstacle||''}; creative energy: ${JSON.stringify(v.energy||[])};
   current reaction to inspiration: ${v.response||''}; what they will leave behind: ${v.cost||''}; next project: ${v.project||''}; personal reflection: ${v.adaptive||''}.
-  Cards in positions SELF, MIRROR, SHADOW, BINDING, PATH: ${cards.map((c,i)=>CARD_POSITIONS[i]+': '+c.n+' ('+c.k+')').join(' | ')}.
-  ${isCorrection?'Their previous reading: '+prior+'; their specific correction: '+(v.correction||'')+'. Incorporate that feedback and provide a new coherent interpretation of the same symbolic cards.':''}
-  Write concise, distinct, specific interpretations linked to the artist's actual answers. Avoid invented biographical facts and guaranteed psychological outcomes.
-  Respond ONLY with valid JSON: {"name":"a dominant Major Arcana from the drawn five cards", "title":"a short artistic archetype title", "text":"a concise summary around 80 words", "sections":{"self":"1-2 sentences","mirror":"1-2 sentences","shadow":"1-2 sentences","binding":"1-2 sentences","path":"1-2 sentences with one practical action"}}.`;
+  Cards in positions SELF, SHADOW, MIRROR: ${cards.map((c,i)=>CARD_POSITIONS[i]+': '+c.n+' ('+c.k+')').join(' | ')}.
+  SELF: their present creative nature and strengths. SHADOW: patterns, fears, or avoidance worth examining. MIRROR: how these parts relate to the persona they want to embody and a possible direction forward.
+  ${isCorrection?'Their previous reading: '+prior+'; their specific correction: '+(v.correction||'')+'. Incorporate their feedback while interpreting the same three cards.':''}
+  Keep the language plain, approachable, grounded in the user's information, and easy to understand. Never invent biographical details or promise outcomes.
+  Respond ONLY with valid JSON matching this format: {"name":"The Star","title":"The Abundant Lightbringer","text":"ONE clear, concise synthesis statement of 1-2 sentences, tailored to this artist, integrating Self, Shadow and Mirror and suggesting their next direction (maximum 42 words)","sections":{"self":"One concise sentence","shadow":"One concise sentence","mirror":"One concise sentence"}}.`;
   try{
     const response=await fetch(CONFIG.aiRelay,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,messages:[{role:'user',content:prompt}]})});
     if(!response.ok)throw new Error('Reading service HTTP '+response.status);
     const parsed=parseModelJSON(await response.json());
-    if(!parsed.sections?.self||!parsed.sections?.path)throw new Error('Reading response was incomplete');
-    db.reading={name:String(parsed.name||cards[0].n),title:String(parsed.title||'The Artist'),text:String(parsed.text||''),cards,sections:parsed.sections,generatedAt:new Date().toISOString()};
+    if(!parsed.sections?.self||!parsed.sections?.shadow||!parsed.sections?.mirror||!parsed.text)throw new Error('Reading response was incomplete');
+    db.reading={name:'The Star',title:'The Abundant Lightbringer',text:String(parsed.text||''),cards,sections:{self:String(parsed.sections.self),shadow:String(parsed.sections.shadow),mirror:String(parsed.sections.mirror)},generatedAt:new Date().toISOString()};
     save();render();
   }catch(error){console.error(error);showError('The reading could not be generated. Please try again. '+error.message);}
   finally{pendingApi=false;}
@@ -625,7 +626,7 @@ async function playInitiationAudio(){
   if(!reading){showError('Generate your reading first.');return;}
   if(audioElement && !audioElement.paused){audioElement.pause();return;}
   if(audioElement && audioElement.src){audioElement.play().catch(e=>showError(e.message));return;}
-  const text=`${v.displayName||'Artist'}, return to the identity you have chosen. ${v.desiredIdentity||''}. ${reading.sections?.path||reading.text||''} Notice what this identity invites you to practice today. Imagine one action you can take. Let your next artistic era begin with that action.`;
+  const text=`${v.displayName||'Artist'}, return to the identity you have chosen. ${v.desiredIdentity||''}. ${reading.text||''} Notice what this identity invites you to practice today. Imagine one action you can take. Let your next artistic era begin with that action.`;
   try{
     const res=await fetch(CONFIG.aiRelay+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voiceId:CONFIG.voiceId,speed:0.85})});
     if(!res.ok)throw new Error('Voice service HTTP '+res.status);
@@ -671,21 +672,22 @@ const nav=(prev,next,label='Continue')=>`<div class="quiz-nav">${btn('Back',prev
 const layout=(eyebrow,title,sub,body)=>`<div class="panel"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}${body}<p class="error-text hidden" id="error"></p></div>`;
 const glyph=`<svg width="34" height="34" viewBox="0 0 34 34" fill="none" class="sacred-glyph"><circle cx="17" cy="17" r="12.5" stroke="currentColor" stroke-width=".9"/><line x1="17" y1="2.5" x2="17" y2="31.5" stroke="currentColor" stroke-width=".9"/></svg>`;
 const showError=(msg)=>{let el=$('error');if(el){el.textContent=msg;el.classList.remove('hidden')}};
-function archetype(){const t=[a().desiredIdentity,a().origin,a().disconnect,a().project,a().adaptive].join(' ').toLowerCase();let n='The Magician',q='The Visionary';if(/rebel|punk|provoc|transgress/.test(t)){n='The Devil';q='The Rebel'}else if(/dream|fantasy|surreal|mystic/.test(t)){n='The Moon';q='The Dreamer'}else if(/light|star|radiant|inspir/.test(t)){n='The Star';q='The Luminary'}else if(/renew|reinvent|reborn|transform/.test(t)){n='Death';q='The Reborn'}else if(/power|command|authority|king|queen/.test(t)){n='The Emperor';q='The Sovereign'};return {name:n,title:q,text:`Your answers suggest a creative direction associated with ${q.toLowerCase()}. Reflect on how your natural creative interests connect to the persona you describe as ${a().personaName?`“${a().personaName}”`:'your next era'}. This archetype is a creative prompt, not a fixed personality classification.`,date:new Date().toISOString(),answers:{...a()}}}
+function archetype(){const t=[a().desiredIdentity,a().origin,a().disconnect,a().project,a().adaptive].join(' ').toLowerCase();let n='The Magician',q='The Visionary';if(/rebel|punk|provoc|transgress/.test(t)){n='The Devil';q='The Rebel'}else if(/dream|fantasy|surreal|mystic/.test(t)){n='The Moon';q='The Dreamer'}else if(/light|star|radiant|inspir/.test(t)){n='The Star';q='The Luminary'}else if(/renew|reinvent|reborn|transform/.test(t)){n='Death';q='The Reborn'}else if(/power|command|authority|king|queen/.test(t)){n='The Emperor';q='The Sovereign'};return {name:'The Star',title:'The Abundant Lightbringer',text:`Your creative light grows as you express ${a().desiredIdentity||'your authentic artistic vision'} while recognizing the habits and expectations that hold you back. Take one deliberate step toward that persona today.`,date:new Date().toISOString(),answers:{...a()}}}
 function finishReading(){if(db.reading)db.priorReading=db.reading;db.reading=archetype();save();render()}
 function cardSpread(cards){
-  if(!Array.isArray(cards)||cards.length!==5)return '';
-  return `<div class="tarot-spread" aria-label="Your five tarot cards">${cards.map((c,i)=>{
+  if(!Array.isArray(cards)||cards.length<3)return '';
+  return `<div class="tarot-spread" aria-label="Your three tarot cards">${cards.slice(0,3).map((c,i)=>{
     const card=typeof c==='string'?ARCANA.find(x=>x.n===c):c;
     if(!card)return '';
     return `<figure class="tarot-card"><img src="${clean(card.img)}" alt="${clean(card.n)} Rider-Waite-Smith card" loading="lazy"/><figcaption>${CARD_POSITIONS[i]}<span>${clean(card.n)}</span></figcaption></figure>`;
   }).join('')}</div><p class="tarot-source">Rider–Waite–Smith tarot artwork · Pamela Colman Smith · Public domain</p>`;
 }
 function resultCard(r){const sections=r.sections||{};
-  return `<div class="reading-result-shell"><span class="starburst"></span><p class="eyebrow" style="color:#d4af37;margin:18px 0">YOUR FIVE-CARD READING</p>${cardSpread(r.cards)}<h2>${clean(r.name)}</h2><p style="color:#d4af37">${clean(r.title)}</p><p>${clean(r.text)}</p>${CARD_POSITIONS.map(k=>sections[k.toLowerCase()]?`<p style="text-align:left"><strong style="color:#d4af37">${k}</strong><br>${clean(sections[k.toLowerCase()])}</p>`:'').join('')}</div>`;
+  const synthesis=String(r.text||'Reflect on your current creative strengths, the patterns that hold you back, and the next step toward your chosen artistic identity.');
+  return `<div class="reading-result-shell"><span class="starburst"></span><p class="eyebrow" style="color:#d4af37;margin:18px 0">THE STAR</p><h2>The Star</h2><p style="color:#d4af37;margin-bottom:20px">The Abundant Lightbringer</p><p class="sub" style="margin-bottom:24px">Your creativity is a light worth sharing. These three cards offer a reflection on where you are and the artist you're becoming.</p>${cardSpread(r.cards)}${CARD_POSITIONS.map(k=>sections[k.toLowerCase()]?`<p style="text-align:left"><strong style="color:#d4af37">${k}</strong><br>${clean(sections[k.toLowerCase()])}</p>`:'').join('')}<div class="rr-block-callout" style="margin-top:24px"><p class="rr-block-label">YOUR READING IN ONE STATEMENT</p><p class="rr-synthesis-text">${clean(synthesis)}</p></div></div>`;
 }
 function showReadingLoading(){
- $('main').innerHTML=layout('THE DRAW','Your cards are being revealed.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',`<div class="reading-loader" role="status" aria-live="polite"><span class="load-star" aria-hidden="true">✴</span><div class="load-cards" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div><p>Drawing your cards and interpreting their symbolism…</p></div>`);
+ $('main').innerHTML=layout('THE DRAW','Your cards are being revealed.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',`<div class="reading-loader" role="status" aria-live="polite"><span class="load-star" aria-hidden="true">✴</span><div class="load-cards" aria-hidden="true"><span></span><span></span><span></span></div><p>Drawing your cards and interpreting their symbolism…</p></div>`);
 }
 
 function render(){let out='',v=a();
@@ -697,7 +699,7 @@ else if(step==='energy')out=layout('04 / ENERGY','Where does your strongest crea
 else if(step==='response')out=layout('05 / DIRECTION','When inspiration strikes, what do you do with it?','',choices('response',['I create immediately','I plan and refine before showing anyone','I overthink and delay','I adapt it to what people expect','I share it boldly'])+nav('energy','cost'));
 else if(step==='cost')out=layout('06 / TRANSFORMATION','If you became this artist, what might you have to leave behind?','',choices('cost',['The image people have of me','A comfortable but outdated aesthetic','Approval from my audience','Old creative habits','The fear of being seen differently'])+field('origin','THE FOOL — WHAT DID YOU LOVE CREATING AS A CHILD?','Your earliest memories, creative impulses, and natural interests…','textarea')+field('disconnect','WHAT NO LONGER FEELS TRUE TO YOUR ART?','Describe the disconnect with your current identity…','textarea')+nav('response','adaptive'));
 else if(step==='adaptive')out=layout('07 / THE DEEPER QUESTION','What does your next era demand of you?','Think about a new project, public transformation, or artistic debut.',field('project','WHAT IS YOUR NEXT PROJECT OR ERA?','Album, performance, collection, film, artistic rebrand…','textarea')+field('adaptive','WHAT WOULD MAKE THIS TRANSFORMATION REAL?','What would you stop doing, start doing, and change in your environment?','textarea')+nav('cost','reading','Draw My Cards'));
-else if(step==='reading'){if(!db.reading && db.priorReading){out=layout('YOUR PREVIOUS READING','Welcome back.','Here is the archetype from your last application. Does it still reflect who you are?',resultCard(db.priorReading)+choices('previousAccurate',[['yes','Yes, it still resonates'],['no','No, I have changed']])+nav('adaptive','accuracy','Continue'))}else{if(!db.reading){out=layout('YOUR READING','Draw your five cards.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',btn('Reveal My Reading','generateReading'));}else{out=layout('YOUR READING','The artist within.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',resultCard(db.reading)+nav('adaptive','accuracy','Continue'))}}}
+else if(step==='reading'){if(!db.reading && db.priorReading){out=layout('YOUR PREVIOUS READING','Welcome back.','Here is the archetype from your last application. Does it still reflect who you are?',resultCard(db.priorReading)+choices('previousAccurate',[['yes','Yes, it still resonates'],['no','No, I have changed']])+nav('adaptive','accuracy','Continue'))}else{if(!db.reading){out=layout('YOUR READING','Draw your three cards.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',btn('Reveal My Reading','generateReading'));}else{out=layout('YOUR READING','The artist within.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',resultCard(db.reading)+nav('adaptive','accuracy','Continue'))}}}
 else if(step==='accuracy')out=layout('THE REFLECTION','Does this reading feel accurate?','You decide what resonates, not the cards.',resultCard(db.reading||db.priorReading||archetype())+choices('accurate',[['yes','Yes, this reflects me'],['no','No, I want to clarify it']])+field('correction','WHAT WOULD YOU CHANGE? (IF NEEDED)','Correct or refine the interpretation in your own words…','textarea',false)+nav('reading','seriousness','Continue'));
 else if(step==='seriousness')out=layout('08 / COMMITMENT','How serious are you about stepping into this identity?','Choose the answer that best describes your intent.',choices('seriousness',[['1','Just exploring'],['2','Curious but not ready'],['3','I want to begin soon'],['4','Ready to take action'],['5','Fully committed to my next era']])+nav('accuracy','income'));
 else if(step==='income')out=layout('09 / YOUR CIRCUMSTANCES','What is your current income range?','Used to recommend an appropriate level of support. Your income does not determine your creative worth.',choices('income',[['under25','$0–$24,999/year'],['25to50','$25,000–$49,999/year'],['50to80','$50,000–$79,999/year'],['80to100','$80,000–$99,999/year'],['over100','$100,000+/year'],['prefer','Prefer not to say']])+nav('seriousness','experience'));
