@@ -453,6 +453,78 @@
 .hidden{display:none!important}
 </style></head>
 <body><div class="page-bg" data-theme="dark" id="root"><div class="app-scroll"><div class="content-col content-col-wide"><div class="top-bar"><span class="top-bar-name">Magi Path</span><div style="display:flex;gap:10px"><button class="tone-btn" id="history-btn">My readings</button><button class="tone-btn" id="theme-toggle" aria-label="Toggle theme">☾</button></div></div><main id="main"></main></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://ttjsajltpiuilphifhwh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Ao3Qw3IOsVAx-C3hJkPCkg_Jwanax2b';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let signedInUser = null;
+let currentApplicationId = null;
+let latestReadingId = null;
+let syncTimer = null;
+async function loginArtist(email) {
+  const {error} = await supabaseClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  if(error) throw error;
+}
+async function loadArtistAccount() {
+  const {data:{user},error} = await supabaseClient.auth.getUser();
+  if(error || !user) return;
+  signedInUser = user;
+  const [{data:profile},{data:applications},{data:readings}] = await Promise.all([
+    supabaseClient.from('artist_profiles').select('*').eq('user_id',user.id).maybeSingle(),
+    supabaseClient.from('applications').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(25),
+    supabaseClient.from('tarot_readings').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(25)
+  ]);
+  if(profile){
+    db.current={...db.current,displayName:profile.display_name||db.current.displayName,
+      desiredIdentity:profile.identity_description||db.current.desiredIdentity,
+      personaName:profile.persona_name||db.current.personaName,
+      discipline:profile.artistic_discipline||db.current.discipline};
+  }
+  if(applications?.length) {
+    db.applications = applications.map(x=>({date:x.created_at,answers:x.responses,reading:readings?.find(y=>y.application_id===x.id)}));
+    currentApplicationId=applications[0].id;
+  }
+  if(readings?.length){
+    const first=readings[0];latestReadingId=first.id;
+    db.priorReading={name:first.cards?.name||'The Magician',title:first.cards?.title||'The Visionary',
+      text:first.sections?.text||'',date:first.created_at};
+    if(!db.reading)db.reading=db.priorReading;
+  }
+  save();render();
+}
+async function syncToSupabase() {
+  if(!signedInUser)return;
+  const v=a();
+  const profile={user_id:signedInUser.id,display_name:v.displayName||'',
+    artistic_discipline:v.discipline||'',identity_description:v.desiredIdentity||'',persona_name:v.personaName||'',updated_at:new Date().toISOString()};
+  const {error:profileError}=await supabaseClient.from('artist_profiles').upsert(profile,{onConflict:'user_id'});
+  if(profileError)throw profileError;
+  if(!currentApplicationId){
+    const {data,error}=await supabaseClient.from('applications').insert({user_id:signedInUser.id,responses:v,
+      seriousness:v.seriousness||null,income_band:v.income||null,recommendation:v.route||null}).select('id').single();
+    if(error)throw error;
+    currentApplicationId=data.id;
+  }
+  // Application records remain immutable for applicants under our initial RLS;
+  // each completed submission is saved as a NEW record below.
+}
+async function completeApplication() {
+  if(!signedInUser){showError('Sign in with your email to securely submit your application.');return false;}
+  const v=a();
+  const {data:app,error:appError}=await supabaseClient.from('applications').insert({user_id:signedInUser.id,responses:{...v},
+    previous_reading_id:latestReadingId,seriousness:v.seriousness||null,income_band:v.income||null,
+    recommendation:v.route||null}).select('id').single();
+  if(appError){showError('Could not save application: '+appError.message);return false;}
+  currentApplicationId=app.id;
+  const r=db.reading||archetype();
+  const {data:reading,error:readError}=await supabaseClient.from('tarot_readings').insert({user_id:signedInUser.id,
+    application_id:app.id,cards:{name:r.name,title:r.title},sections:{text:r.text},corrections:v.correction||'',
+    accepted:v.accurate==='yes',supersedes_reading_id:latestReadingId}).select('id').single();
+  if(readError){showError('Application saved, but the reading could not be saved: '+readError.message);return false;}
+  latestReadingId=reading.id;return true;
+}
+</script>
 <script>
 const KEY='rockstar-draw-identical-v1';
 const $=id=>document.getElementById(id);
@@ -475,7 +547,7 @@ function finishReading(){if(db.reading)db.priorReading=db.reading;db.reading=arc
 function resultCard(r){return `<div class="reading-result-shell"><span class="starburst"></span><p class="eyebrow" style="color:#d4af37;margin:18px 0">YOUR ARTISTIC ARCHETYPE</p><h2>${clean(r.name)}</h2><p style="color:#d4af37">${clean(r.title)}</p><p>${clean(r.text)}</p></div>`}
 function render(){let out='',v=a();
 if(step==='intro'){
-out=`<div class="panel hero-panel"><p class="eyebrow">THE MAGICIAN'S PATH • THE ROCKSTAR INITIATION</p><h1 class="hero-h1">You've outgrown the artist the world knows.</h1><p class="sub hero-sub">It's time to become the one you know. Tell me who you're becoming. I'll draw the cards to explore what stands in the way.</p>${field('displayName','WHAT SHOULD WE CALL YOU?','Your name')}${field('desiredIdentity','WHO IS THE ARTIST YOU ARE BECOMING?','Describe their vision, presence, artistic expression and identity…','textarea')}${field('personaName','GIVE YOUR NEW PERSONA A NAME (OPTIONAL)','A stage name, title, or identity') }<p class="option-note">Your persona name is yours to change whenever you want.</p>${btn('Begin My Application','distance')}<p class="reassurance">The reading is free. No commitment.</p></div><div class="landing-divider">${glyph}</div><div class="panel steps-panel"><h2 class="section-h2">The reading starts with you.</h2><p class="sub section-body">You don't ask the cards who you're supposed to be.<br><br>You decide that first.<br><br>The reading is a mirror — a way to explore the patterns and beliefs that might stand between your current artistic identity and the next.</p><div class="steps-list"><div class="step"><span class="step-num">01</span><div><div class="step-title">Name It</div><p class="step-desc">Describe the artist you wish to embody.</p></div></div><div class="step"><span class="step-num">02</span><div><div class="step-title">Reveal It</div><p class="step-desc">Explore your archetype through The Draw's reading.</p></div></div><div class="step"><span class="step-num">03</span><div><div class="step-title">Apply</div><p class="step-desc">Discover your recommended next step.</p></div></div></div>${btn('Begin My Application','distance')}</div>`;
+out=`<div class="panel hero-panel"><p class="eyebrow">THE MAGICIAN'S PATH • THE ROCKSTAR INITIATION</p><h1 class="hero-h1">You've outgrown the artist the world knows.</h1><p class="sub hero-sub">It's time to become the one you know. Tell me who you're becoming. I'll draw the cards to explore what stands in the way.</p>${field('email','YOUR EMAIL (FOR YOUR SAVED PROFILE)','you@example.com','email')}${btn(signedInUser?'Signed in — My Profile':'Send Sign-In Link','signIn','secondary')}<p class="option-note">${signedInUser?'Signed in as '+clean(signedInUser.email):'We will email you a secure sign-in link. Open it before submitting your application.'}</p>${field('displayName','WHAT SHOULD WE CALL YOU?','Your name')}${field('desiredIdentity','WHO IS THE ARTIST YOU ARE BECOMING?','Describe their vision, presence, artistic expression and identity…','textarea')}${field('personaName','GIVE YOUR NEW PERSONA A NAME (OPTIONAL)','A stage name, title, or identity') }<p class="option-note">Your persona name is yours to change whenever you want.</p>${btn('Begin My Application','distance')}<p class="reassurance">The reading is free. No commitment.</p></div><div class="landing-divider">${glyph}</div><div class="panel steps-panel"><h2 class="section-h2">The reading starts with you.</h2><p class="sub section-body">You don't ask the cards who you're supposed to be.<br><br>You decide that first.<br><br>The reading is a mirror — a way to explore the patterns and beliefs that might stand between your current artistic identity and the next.</p><div class="steps-list"><div class="step"><span class="step-num">01</span><div><div class="step-title">Name It</div><p class="step-desc">Describe the artist you wish to embody.</p></div></div><div class="step"><span class="step-num">02</span><div><div class="step-title">Reveal It</div><p class="step-desc">Explore your archetype through The Draw's reading.</p></div></div><div class="step"><span class="step-num">03</span><div><div class="step-title">Apply</div><p class="step-desc">Discover your recommended next step.</p></div></div></div>${btn('Begin My Application','distance')}</div>`;
 }else if(step==='distance')out=layout('02 / DISTANCE','How close do you feel to them?','1 means you barely recognize this artist in yourself. 10 means you are already living as them.',`<div class="scale-grid">${Array.from({length:10},(_,i)=>`<button type="button" class="scale-btn ${Number(v.distance)===i+1?'scale-btn-selected':''}" data-choice="distance" data-value="${i+1}">${i+1}</button>`).join('')}</div>${nav('intro','resistance')}`);
 else if(step==='resistance')out=layout('03 / RESISTANCE','What usually gets in the way?','',choices('obstacle',['Fear of being judged','Expectations of my audience','An outdated public persona','Perfectionism','Lack of clarity','Something else'])+nav('distance','energy'));
 else if(step==='energy')out=layout('04 / ENERGY','Where does your strongest creative energy go?','Choose up to two.',choices('energy',['Making the work','Performance and visibility','Creative direction and aesthetics','Planning and perfectionism','Self-doubt and comparison','Avoidance and distraction'],true)+nav('resistance','response'));
@@ -486,17 +558,18 @@ else if(step==='reading'){if(!db.reading && db.priorReading){out=layout('YOUR PR
 else if(step==='accuracy')out=layout('THE REFLECTION','Does this reading feel accurate?','You decide what resonates, not the cards.',resultCard(db.reading||db.priorReading||archetype())+choices('accurate',[['yes','Yes, this reflects me'],['no','No, I want to clarify it']])+field('correction','WHAT WOULD YOU CHANGE? (IF NEEDED)','Correct or refine the interpretation in your own words…','textarea',false)+nav('reading','seriousness','Continue'));
 else if(step==='seriousness')out=layout('08 / COMMITMENT','How serious are you about stepping into this identity?','Choose the answer that best describes your intent.',choices('seriousness',[['1','Just exploring'],['2','Curious but not ready'],['3','I want to begin soon'],['4','Ready to take action'],['5','Fully committed to my next era']])+nav('accuracy','income'));
 else if(step==='income')out=layout('09 / YOUR CIRCUMSTANCES','What is your current income range?','Used to recommend an appropriate level of support. Your income does not determine your creative worth.',choices('income',[['under25','$0–$24,999/year'],['25to50','$25,000–$49,999/year'],['50to100','$50,000–$99,999/year'],['over100','$100,000+/year'],['prefer','Prefer not to say']])+nav('seriousness','experience'));
-else if(step==='experience')out=layout('10 / ARTISTIC EXPERIENCE','Where are you in your artistic career?','',choices('established',[['established','I have an established body of work'],['emerging','I am building my creative practice'],['starting','I am just beginning']])+choices('support',[['private','I want private, personalized mentorship'],['self','I prefer a self-guided experience'],['meditation','I want a focused AI-generated initiation']])+field('email','YOUR EMAIL','you@example.com','email')+field('portfolio','YOUR PORTFOLIO OR SOCIAL PROFILE (OPTIONAL)','https://…','url',false)+`<p class="option-note">Your details are stored only in this browser until a secure backend is connected. Do not submit sensitive information in this demonstration.</p>`+nav('income','recommend','See My Recommendation'));
+else if(step==='experience')out=layout('10 / ARTISTIC EXPERIENCE','Where are you in your artistic career?','',choices('established',[['established','I have an established body of work'],['emerging','I am building my creative practice'],['starting','I am just beginning']])+choices('support',[['private','I want private, personalized mentorship'],['self','I prefer a self-guided experience'],['meditation','I want a focused AI-generated initiation']])+field('email','YOUR EMAIL','you@example.com','email')+field('portfolio','YOUR PORTFOLIO OR SOCIAL PROFILE (OPTIONAL)','https://…','url',false)+`<p class="option-note">Sign in via email before submitting. Your application and reading will be saved to your Supabase account.</p>`+nav('income','recommend','See My Recommendation'));
 else if(step==='recommend'){let eligible=v.established==='established'&&v.support==='private'&&Number(v.seriousness)>=4&&v.income!=='under25',route=eligible?'call':v.support==='meditation'||Number(v.seriousness)<3?'meditation':'self';v.route=route;save();let title=route==='call'?'You may be a fit.':route==='self'?'Begin your initiation independently.':'Your first initiation begins here.';let copy=route==='call'?'Your application suggests you may be a good match for private Rockstar Initiation mentorship. The next step is a complimentary discovery call.':route==='self'?'The self-guided Rockstar Initiation offers a structured path through The Fool, Persona, Programming, Manifesto and Liberation.':'Begin with a personalized guided initiation, practice each morning, and reapply when you are ready for more.';out=layout('YOUR RECOMMENDED PATH',title,copy,resultCard(db.reading||archetype())+`<div class="info-box">${route==='call'?'Congratulations. You may be the right fit. Booking is by invitation and final acceptance is determined on the discovery call.':`Set a recurring reminder on your phone to return to your initiation each morning. When you're ready for the next step, return and reapply.`}</div>${btn(route==='call'?'Book a Discovery Call':route==='self'?'Explore the Self-Guided Initiation':'Explore Your AI Initiation','destination')}${btn('Reapply / Revisit My Reading','reapply','secondary')}<p class="muted-note">Destination URLs require configuration. This HTML file does not process payment or generate real AI/audio.</p>`)}
 $('main').innerHTML=out;document.querySelectorAll('[data-field]').forEach(el=>{el.addEventListener('input',()=>{a()[el.dataset.field]=el.value;save()})});document.querySelectorAll('[data-choice]').forEach(el=>el.addEventListener('click',()=>{let k=el.dataset.choice,value=el.dataset.value;if(el.dataset.multi==='yes'){let arr=a()[k]||[];a()[k]=arr.includes(value)?arr.filter(x=>x!==value):arr.length<2?[...arr,value]:arr}else a()[k]=value;save();render()}));document.querySelectorAll('[data-action]').forEach(el=>el.addEventListener('click',()=>move(el.dataset.action)));window.scrollTo({top:0,behavior:'instant'});
 }
-function move(next){if(next==='destination'){showError('Add your Whop or Calendly destination URL in the website configuration.');return}if(next==='reapply'){db.applications.push({date:new Date().toISOString(),answers:{...a()},reading:db.reading});db.priorReading=db.reading;db.reading=null;db.current={displayName:a().displayName,desiredIdentity:a().desiredIdentity,personaName:a().personaName};step='intro';feedbackCount=0;save();render();return}
+async function move(next){if(next==='signIn'){const email=a().email?.trim();if(!email||!email.includes('@'))return showError('Enter a valid email first.');try{await loginArtist(email);showError('Check your inbox for the secure sign-in link.')}catch(e){showError(e.message)}return}if(next==='destination'){showError('Add your Whop or Calendly destination URL in the website configuration.');return}if(next==='reapply'){db.applications.push({date:new Date().toISOString(),answers:{...a()},reading:db.reading});db.priorReading=db.reading;db.reading=null;db.current={displayName:a().displayName,desiredIdentity:a().desiredIdentity,personaName:a().personaName};step='intro';feedbackCount=0;save();render();return}
 if(step==='intro'&&next==='distance'&&(!a().displayName?.trim()||!a().desiredIdentity?.trim()))return showError('Enter your name and describe the artist you want to become.');
 if(step==='accuracy'&&next==='seriousness'){if(!a().accurate)return showError('Tell us whether the reading feels accurate.');if(a().accurate==='no'){if(!a().correction?.trim())return showError('Tell us what you would change.');if(feedbackCount<2){db.reading=archetype();db.reading.text+=' Your clarification: '+a().correction;feedbackCount++;a().accurate='';save();render();return}}}
 if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='no'){db.reading=archetype();save()}else if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='yes'){db.reading=db.priorReading;save()}
 if(step==='experience'&&next==='recommend'&&(!a().email?.includes('@')||!a().established||!a().support))return showError('Choose your experience and support preferences and enter a valid email.');
-step=next;save();render()}
+if(next==='recommend'){if(!signedInUser)return showError('Please use Send Sign-In Link and open the emailed link first.');const ok=await completeApplication();if(!ok)return}step=next;save();render()}
 $('theme-toggle').onclick=()=>{let root=$('root');root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';$('theme-toggle').textContent=root.dataset.theme==='dark'?'☾':'☀'};
 $('history-btn').onclick=()=>{let text=(db.applications.length?db.applications.map((x,i)=>`${i+1}. ${new Date(x.date).toLocaleDateString()} — ${x.reading?.name||'Reading'}`).join('\n'):'No prior applications saved in this browser.');alert(text)};
-render();
+supabaseClient.auth.onAuthStateChange((_event,session)=>{if(session?.user&&!signedInUser){signedInUser=session.user;setTimeout(loadArtistAccount,0)}});
+render();loadArtistAccount();
 </script></body></html>
