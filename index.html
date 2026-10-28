@@ -520,7 +520,7 @@
 
 
 </style></head>
-<body><div class="page-bg" data-theme="dark" id="root"><div class="app-scroll"><div class="content-col content-col-wide"><div class="top-bar"><span class="top-bar-name">Magi Path</span><div style="display:flex;gap:10px"><button class="tone-btn" id="history-btn">My readings</button><button class="tone-btn" id="theme-toggle" aria-label="Toggle theme">☾</button></div></div><main id="main"></main></div></div></div>
+<body><div class="page-bg" data-theme="dark" id="root"><div class="app-scroll"><div class="content-col content-col-wide"><div class="top-bar"><span class="top-bar-name">Magi Path</span><div style="display:flex;gap:10px"><button class="tone-btn" id="theme-toggle" aria-label="Toggle theme">☾</button></div></div><main id="main"></main></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://ttjsajltpiuilphifhwh.supabase.co';
@@ -791,7 +791,6 @@ if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate===
 if(step==='experience'&&next==='recommend'&&(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a().email||'')||!a().established||!a().seriousness||!a().income))return showError('Choose your experience, commitment, and income range, and enter a valid email.');
 if(next==='recommend'){const ok=await submitArtistApplication();if(!ok)return}step=next;save();render()}
 $('theme-toggle').onclick=()=>{let root=$('root');root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';$('theme-toggle').textContent=root.dataset.theme==='dark'?'☾':'☀'};
-$('history-btn').onclick=()=>{let text=(db.applications.length?db.applications.map((x,i)=>`${i+1}. ${new Date(x.date).toLocaleDateString()} — ${x.reading?.name||'Reading'}`).join('\n'):'No prior applications saved in this browser.');alert(text)};
 // Anonymous application: sign-in is not required or prompted.
 render();
 </script></body></html>
