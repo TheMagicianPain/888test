@@ -684,15 +684,12 @@ async function playInitiationAudio(){
   }catch(error){console.error(error);showError('Unable to play the guided preview: '+error.message)}
 }
 function qualifiesForCall(v){
-  // Private calls: established artists earning $80k+ who are ready to act,
-  // or artists earning $50k–$79,999 with exceptional commitment.
-  const experience=v.established==='established';
-  const readiness=Number(v.seriousness)||0;
-  return experience && ((['80to100','over100'].includes(v.income) && readiness>=4) || (v.income==='50to80' && readiness===5));
+  // Every completed application is invited to a discovery call.
+  return true;
 }
 async function submitArtistApplication(){
   const v={...a()};
-  const route=qualifiesForCall(v)?'call':'self';
+  const route='call';
   v.route=route;
   const submission={profile:{name:v.displayName,email:v.email,persona:v.personaName,desiredIdentity:v.desiredIdentity},responses:v,reading:db.reading,submittedAt:new Date().toISOString()};
   localStorage.setItem(KEY+'-last-submission',JSON.stringify(submission));
@@ -764,27 +761,20 @@ else if(step==='adaptive')out=layout('07 / THE DEEPER QUESTION','What does your 
 else if(step==='reading'){if(!db.reading && db.priorReading){out=layout('YOUR PREVIOUS READING','Welcome back.','Here is the archetype from your last application. Does it still reflect who you are?',resultCard(db.priorReading)+choices('previousAccurate',[['yes','Yes, it still resonates'],['no','No, I have changed']])+nav('adaptive','accuracy','Continue'))}else{if(!db.reading){out=layout('YOUR READING','Draw your three cards.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',btn('Reveal My Reading','generateReading'));}else{out=layout('YOUR READING','The artist within.','This reading will help us both understand who you are inside and where you are going, so I can better understand how to help you.',resultCard(db.reading)+nav('adaptive','accuracy','Continue'))}}}
 else if(step==='accuracy')out=layout('THE REFLECTION','Does this reading feel accurate?','You decide what resonates, not the cards.',resultCard(db.reading||db.priorReading||archetype())+choices('accurate',[['yes','Yes, this reflects me'],['no','No, I want to clarify it']])+field('correction','WHAT WOULD YOU CHANGE? (IF NEEDED)','Correct or refine the interpretation in your own words…','textarea',false)+nav('reading','seriousness','Continue'));
 else if(step==='seriousness')out=layout('08 / COMMITMENT','How serious are you about stepping into this identity?','Choose the answer that best describes your intent.',choices('seriousness',[['1','Just exploring'],['2','Curious but not ready'],['3','I want to begin soon'],['4','Ready to take action'],['5','Fully committed to my next era']])+nav('accuracy','income'));
-else if(step==='income')out=layout('09 / YOUR CIRCUMSTANCES','What is your current income range?','Used to recommend an appropriate level of support. Your income does not determine your creative worth.',choices('income',[['under25','$0–$24,999/year'],['25to50','$25,000–$49,999/year'],['50to80','$50,000–$79,999/year'],['80to100','$80,000–$99,999/year'],['over100','$100,000+/year'],['prefer','Prefer not to say']])+nav('seriousness','experience'));
+else if(step==='income')out=layout('09 / YOUR CIRCUMSTANCES','What is your current annual income range?','This helps us understand your circumstances ahead of the discovery call. Your answer will not affect your invitation.',choices('income',[['under25','$0–$24,999/year'],['25to50','$25,000–$49,999/year'],['50to80','$50,000–$79,999/year'],['80to100','$80,000–$99,999/year'],['over100','$100,000+/year'],['prefer','Prefer not to say']])+nav('seriousness','experience'));
 else if(step==='experience')out=layout('10 / ARTISTIC EXPERIENCE','Where are you in your artistic career?','',choices('established',[['established','I have an established body of work'],['emerging','I am building my creative practice'],['starting','I am just beginning']])+field('email','YOUR EMAIL','you@example.com','email')+field('portfolio','YOUR PORTFOLIO OR SOCIAL PROFILE (OPTIONAL)','','text',false)+`<p class="option-note">No account or email verification required.</p>`+nav('income','recommend','Submit Application'));
 else if(step==='recommend'){
-  // Always recompute eligibility from the applicant's answers.
-  // Do not fall back to self-guided merely because route wasn't persisted.
-  const route=qualifiesForCall(v)?'call':'self';
-  v.route=route;
+  v.route='call';
   save();
-  const eligible=route==='call';
-  const title=eligible?'Congratulations. You may be a good fit.':'Your initiation continues.';
-  const copy=eligible
-    ?'Your application suggests that your artistic experience, commitment, and circumstances may align with private Rockstar Initiation mentorship. Book a discovery call to discuss your next creative era and determine whether we are a good fit to work together.'
-    :"Based on your application, I don't think you're the right fit for the private Rockstar Initiation just yet. I recommend beginning with the self-guided digital program and developing your next artistic identity at your own pace.";
-  out=layout('APPLICATION SUBMITTED',title,copy,
-    `<div class="info-box">${eligible?'You are invited to book a complimentary discovery call to discuss your Rockstar Initiation.':'Start with the self-guided initiation. When you feel ready to take the next step, you can return and reapply.'}</div>`+
-    btn(eligible?'Book Your Discovery Call':'Explore the Self-Guided Initiation','destination')+
+  out=layout('APPLICATION SUBMITTED','Your next era begins here.',
+    'Your application has been received. Book a complimentary discovery call to discuss your artistic vision, learn more about the private Rockstar Initiation, and explore whether working together is the right fit.',
+    `<div class="info-box">Every applicant is welcome to book a discovery call. This conversation is an opportunity for both of us to explore the experience and determine fit.</div>`+
+    btn('Book Your Discovery Call','destination')+
     btn('Reapply / Revisit My Reading','reapply','secondary'));
 }
 $('main').innerHTML=out;document.querySelectorAll('[data-field]').forEach(el=>{el.addEventListener('input',()=>{a()[el.dataset.field]=el.value;save()})});document.querySelectorAll('[data-choice]').forEach(el=>el.addEventListener('click',()=>{let k=el.dataset.choice,value=el.dataset.value;if(el.dataset.multi==='yes'){let arr=a()[k]||[];a()[k]=arr.includes(value)?arr.filter(x=>x!==value):arr.length<2?[...arr,value]:arr}else a()[k]=value;save();render()}));document.querySelectorAll('[data-action]').forEach(el=>el.addEventListener('click',()=>move(el.dataset.action)));window.scrollTo({top:0,behavior:'instant'});
 }
-async function move(next){if(next==='destination'){const path=qualifiesForCall(a())?'call':'self';a().route=path;save();const url=path==='call'?CONFIG.discoveryCall:CONFIG.selfGuidedCheckout;if(!url){showError('This destination has not been configured yet.');return;}window.open(url,'_blank','noopener,noreferrer');return}if(next==='generateReading'){await generateArtistReading(false);return}if(next==='playAudio'){await playInitiationAudio();return}if(next==='reapply'){db.applications.push({date:new Date().toISOString(),answers:{...a()},reading:db.reading});db.priorReading=db.reading;db.reading=null;db.current={displayName:a().displayName,desiredIdentity:a().desiredIdentity,personaName:a().personaName};step='intro';feedbackCount=0;save();render();return}
+async function move(next){if(next==='destination'){a().route='call';save();const url=CONFIG.discoveryCall;if(!url){showError('This destination has not been configured yet.');return;}window.open(url,'_blank','noopener,noreferrer');return}if(next==='generateReading'){await generateArtistReading(false);return}if(next==='playAudio'){await playInitiationAudio();return}if(next==='reapply'){db.applications.push({date:new Date().toISOString(),answers:{...a()},reading:db.reading});db.priorReading=db.reading;db.reading=null;db.current={displayName:a().displayName,desiredIdentity:a().desiredIdentity,personaName:a().personaName};step='intro';feedbackCount=0;save();render();return}
 if(step==='intro'&&next==='distance'&&(!a().displayName?.trim()||!a().desiredIdentity?.trim()))return showError('Enter your name and describe the artist you want to become.');
 if(step==='accuracy'&&next==='seriousness'){if(!a().accurate)return showError('Tell us whether the reading feels accurate.');if(a().accurate==='no'){if(!a().correction?.trim())return showError('Tell us what you would change.');if(feedbackCount<2){feedbackCount++;a().accurate='';await generateArtistReading(true);return}}}
 if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='no'){await generateArtistReading(true);return}else if(step==='reading'&&db.priorReading&&next==='accuracy'&&a().previousAccurate==='yes'){db.reading=db.priorReading;save()}
